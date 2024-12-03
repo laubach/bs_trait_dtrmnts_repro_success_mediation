@@ -9,7 +9,7 @@
 # User-specific files
 .Ruserdata
 
-0_import_raw_data
+/scripts/0_import_raw_data
 /raw_data
 /old
 
