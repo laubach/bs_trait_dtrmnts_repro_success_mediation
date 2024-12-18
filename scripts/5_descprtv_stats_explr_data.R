@@ -14,9 +14,9 @@
   ### PURPOSE: Calculate descriptive statistics and explore data 
   
   # Code Blocks
-    # 1: Configure work space
-    # 2: Import data 
-    # 3: Node level descriptive stats  
+    # 1. Configure work space
+    # 2. Import data 
+    # 3. Descriptive stats 
 
   
 
@@ -95,16 +95,16 @@
 ###############################################################################    
 
   ### 2.1 Import sample data files
-    ## a) Load node and dyad level data for CHR 2015
+    ## a) Load mediation data for CHR 2015
       load(here('data/5_6_chr15_mediation_data.RData'))
       
    
 
 ###############################################################################
-##############          3. Node level descriptive stats          ##############
+##############               3. Descriptive stats                ##############
 ###############################################################################
 
-  ### 3.1 Univariate descriptive stats for node-level attribute data
+  ### 3.1 Univariate descriptive stats for attribute data
     ## a) Total sample size
         n <- sum(!is.na(chr15_attrib_pre_df$Tag))
         
@@ -123,7 +123,7 @@
         ungroup()
       
     ## d) Descriptive stats morphology variables
-      univar_node_morph <- chr15_attrib_pre_df %>%
+      univar_morph <- chr15_attrib_pre_df %>%
         group_by(Sex) %>%
               # throat average brightness
         summarise (n.T_avg.bright = sum(!is.na(T_avg.bright)),
@@ -153,18 +153,18 @@
         ungroup()
       
     ## e) transpose the data frame for easier viewing
-      univar_node_morph <- as.data.frame(t(univar_node_morph))
-      univar_node_morph <- univar_node_morph %>%
+      univar_morph <- as.data.frame(t(univar_morph))
+      univar_morph <- univar_morph %>%
         rename(c(female = V1,
                  male = V2))
       
     ## f) save the data frame of summary stats as a pdf into output file
-      pdf(here('output/univar_node_morph.pdf'), height = 13, width = 4)
-      grid.table(univar_node_morph)
+      pdf(here('output/univar_morph.pdf'), height = 13, width = 4)
+      grid.table(univar_morph)
       dev.off()
 
     ## g) Descriptive stats morphology variables
-      univar_node_R_brigh_post <- chr15_attrib_post_df %>%
+      univar_R_brigh_post <- chr15_attrib_post_df %>%
         ungroup() %>%
         filter(Color.manipulation. == 'y') %>%  
       # breast average brightness post-manip
@@ -186,9 +186,9 @@
                                           (R.bright.treat.and.orig,
                                             na.rm = T), 2))
       
-  ### 3.2  Univariate descriptive stats for node-level social intx. data
+  ### 3.2  Univariate descriptive stats for social intx. data
       ## a) Descriptive stats social intx. variables pre-manip
-      univar_node_soc_intx_pre <- chr15_attrib_pre_df %>%
+      univar_soc_intx_pre <- chr15_attrib_pre_df %>%
         group_by(Sex) %>%
         # number of unique social partners
         summarise (n.n.unique.soc.partner.pre = sum(!is.na
@@ -265,18 +265,18 @@
       
       
     ## b) transpose the data frame for easier viewing
-      univar_node_soc_intx_pre <- as.data.frame(t(univar_node_soc_intx_pre))
-      univar_node_soc_intx_pre <- univar_node_soc_intx_pre %>%
+      univar_soc_intx_pre <- as.data.frame(t(univar_soc_intx_pre))
+      univar_soc_intx_pre <- univar_soc_intx_pre %>%
         rename(c(female = V1,
                  male = V2))
       
     ## c) save the data frame of summary stats as a pdf into output file
-      pdf(here('output/univar_node_soc_intx_pre.pdf'), height = 11, width = 4)
-      grid.table(univar_node_soc_intx_pre)
+      pdf(here('output/univar_soc_intx_pre.pdf'), height = 11, width = 4)
+      grid.table(univar_soc_intx_pre)
       dev.off()
       
     ## d) Descriptive stats social intx. pre-manip variables by age class
-      univar_node_soc_intx_age_pre <- chr15_attrib_pre_df %>%
+      univar_soc_intx_age_pre <- chr15_attrib_pre_df %>%
         group_by(Sex, Age.category) %>%
         # number of unique social partners
         summarise (n.n.unique.soc.partner.pre = sum(!is.na
@@ -352,20 +352,20 @@
                                                       na.rm = T), 2))
       
     ## e) transpose the data frame for easier viewing
-      univar_node_soc_intx_age_pre <- as.data.frame(t(univar_node_soc_intx_age_pre))
-      univar_node_soc_intx_age_pre <- univar_node_soc_intx_age_pre %>%
+      univar_soc_intx_age_pre <- as.data.frame(t(univar_soc_intx_age_pre))
+      univar_soc_intx_age_pre <- univar_soc_intx_age_pre %>%
         rename(c(female.sy = V1,
                  female.asy = V2,
                  male.sy = V3,
                  male.asy = V4))    
       
     ## f) save the data frame of summary stats as a pdf into output file
-      pdf(here('output/univar_node_soc_intx_age_pre.pdf'), height = 11, width = 6)
-      grid.table(univar_node_soc_intx_age_pre)
+      pdf(here('output/univar_soc_intx_age_pre.pdf'), height = 11, width = 6)
+      grid.table(univar_soc_intx_age_pre)
       dev.off()
       
     ## g) Descriptive stats social intx. variables post manip
-      univar_node_soc_intx_post <- chr15_attrib_post_df %>%
+      univar_soc_intx_post <- chr15_attrib_post_df %>%
         group_by(Sex) %>%
         # number of unique social partners
         summarise (n.n.unique.soc.partner.post = sum(!is.na
@@ -441,18 +441,18 @@
                                                       na.rm = T), 2))
       
     ## h) transpose the data frame for easier viewing
-      univar_node_soc_intx_post <- as.data.frame(t(univar_node_soc_intx_post))
-      univar_node_soc_intx_post <- univar_node_soc_intx_post %>%
+      univar_soc_intx_post <- as.data.frame(t(univar_soc_intx_post))
+      univar_soc_intx_post <- univar_soc_intx_post %>%
         rename(c(female = V1,
                  male = V2))
       
     ## i) save the data frame of summary stats as a pdf into output file
-      pdf(here('output/univar_node_soc_intx_post.pdf'), height = 11, width = 4)
-      grid.table(univar_node_soc_intx_post)
+      pdf(here('output/univar_soc_intx_post.pdf'), height = 11, width = 4)
+      grid.table(univar_soc_intx_post)
       dev.off()
       
     ## j) Descriptive stats social intx. post manip variables by age class
-      univar_node_soc_intx_age_post <- chr15_attrib_post_df %>%
+      univar_soc_intx_age_post <- chr15_attrib_post_df %>%
         group_by(Sex, Age.category) %>%
         # number of unique social partners
         summarise (n.n.unique.soc.partner.post = sum(!is.na
@@ -528,21 +528,21 @@
                                                       na.rm = T), 2))
       
     ## k) transpose the data frame for easier viewing
-      univar_node_soc_intx_age_post <- as.data.frame(t
-                                        (univar_node_soc_intx_age_post))
-      univar_node_soc_intx_age_post <- univar_node_soc_intx_age_post %>%
+      univar_soc_intx_age_post <- as.data.frame(t
+                                        (univar_soc_intx_age_post))
+      univar_soc_intx_age_post <- univar_soc_intx_age_post %>%
         rename(c(female.sy = V1,
                  female.asy = V2,
                  male.sy = V3,
                  male.asy = V4))    
       
     ## l) save the data frame of summary stats as a pdf into output file
-      pdf(here('output/univar_node_soc_intx_age_post.pdf'), height = 11, width = 6)
-      grid.table(univar_node_soc_intx_age_post)
+      pdf(here('output/univar_soc_intx_age_post.pdf'), height = 11, width = 6)
+      grid.table(univar_soc_intx_age_post)
       dev.off()  
       
       
-  ### 3.3 Univariate descriptive stats for node-level reproduction data 
+  ### 3.3 Univariate descriptive stats for reproduction data 
     ## a) Frequency distribution of female total fecundity
      f_total_repro_freq_dist_plot <- 
         # raw data plot
