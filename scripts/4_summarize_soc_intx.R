@@ -1,25 +1,24 @@
 ################################################################################
-#############        The role of age and plumage traits as         #############  
-#############       determinants of reproductive success and       #############
-#############       the mediating role of social interactions      #############
+#############       Testing the mediating role of female-male      #############  
+#############    social interactions on the relationship between   #############
+#############             age and reproductive success.            #############
 #############                                                      #############
 #############         4. Summarize social interaction data         #############
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 21 Aug 2024                  #############
-#############              last updated: 3 Dec 2024                #############
+#############             last updated: 25 Feb 2024                #############
 ################################################################################
 
 
-  ### PURPOSE: Summarize the social interaction data to create node level
+  ### PURPOSE: Summarize the social interaction data to create level
             # network measures from pre- and post manipulation social networks
   
   # Code Blocks
-    # 1: Configure work space
-    # 2: Import data 
-    # 3: Tidy data 
-    # 4: Export data files
-  
+    # 1. Configure work space
+    # 2. Import data 
+    # 3. Tidy data 
+    # 4. Export data
 
 
 ###############################################################################
@@ -41,24 +40,9 @@
       
     # load igraph package
       library ('igraph')  
-      
-    # load assortnet package
-      library ('assortnet')  
-    
-    # # load corrr package
-    #   library ('corrr')
     
     # load lubridate package
       library ('lubridate')
-    
-    # load gridExtra packages
-      library ('gridExtra')  
-    
-    # load smplot2 packages   
-      library('smplot2')
-      
-    # load chisq.posthoc.test package  
-      library('chisq.posthoc.test')
       
     # load here package
       library ('here')
@@ -110,7 +94,7 @@
 ##############                   3. Tidy data                    ##############
 ############################################################################### 
       
-  ### 3.1 Summarize node level social intx    
+  ### 3.1 Summarize level social intx    
     ## a) Rename social intx. variable pre-manipulation
       chr15_intx_pre_df_20rssi <- chr15_intx_pre_df_20rssi %>%
         rename(cnt.soc.intx.pre = n)
@@ -119,26 +103,30 @@
       female_intx_pre_sum <- chr15_intx_pre_df_20rssi %>%
         group_by(Tag1) %>%
                   # number of unique social partners
-        summarise (n.unique.soc.partner.pre = sum(!is.na(cnt.soc.intx.pre)),
+        summarise(n.unique.soc.partner.pre = sum(!is.na(cnt.soc.intx.pre)),
                   # max number of social interactions with any one soc. partner
                    max.cnt.soc.intx.pre = round(max(cnt.soc.intx.pre,
                                                 na.rm = T), 2),
                   # total number of social interactions with all soc. partners
                    tot.cnt.soc.intx.pre = round (sum(cnt.soc.intx.pre, 
-                                                  na.rm = T),2)) %>%
+                                                  na.rm = T), 2),
+                  # total duration of interactions with all soc. partners
+                  tot.dur = round(sum(tot.dur, na.rm = T)/60, 2)) %>%
         rename(Tag = Tag1)
       
     ## c) Summary of each male's social intx pre-manipulation
       male_intx_pre_sum <- chr15_intx_pre_df_20rssi %>%
         group_by(Tag2) %>%
                   # number of unique social partners
-        summarise (n.unique.soc.partner.pre = sum(!is.na(cnt.soc.intx.pre)),
+        summarise(n.unique.soc.partner.pre = sum(!is.na(cnt.soc.intx.pre)),
                    # max number of social interactions with any one soc. partner
                    max.cnt.soc.intx.pre = round(max(cnt.soc.intx.pre,
                                                 na.rm = T), 2),
                    # total number of social interactions with all soc. partners
                    tot.cnt.soc.intx.pre = round (sum(cnt.soc.intx.pre, 
-                                                 na.rm = T),2)) %>%
+                                                 na.rm = T), 2),
+                   # total duration of interactions with all soc. partners
+                   tot.dur = round(sum(tot.dur, na.rm = T)/60, 2)) %>%
         rename(Tag = Tag2)
       
     ## d) Combine female and male soc. intx. summaries pre-manipulation
@@ -165,7 +153,9 @@
                                                 na.rm = T), 2),
                    # total number of social interactions with all soc. partners
                    tot.cnt.soc.intx.post = round (sum(cnt.soc.intx.post, 
-                                                 na.rm = T),2)) %>%
+                                                 na.rm = T), 2),
+                   # total duration of interactions with all soc. partners
+                   tot.dur = round (sum(tot.dur, na.rm = T)/60, 2)) %>%
         rename(Tag = Tag1)
       
     ## h) Summary of each male's social intx post-manipulation
@@ -178,21 +168,22 @@
                                                 na.rm = T), 2),
                    # total number of social interactions with all soc. partners
                    tot.cnt.soc.intx.post = round (sum(cnt.soc.intx.post, 
-                                                 na.rm = T),2)) %>%
+                                                 na.rm = T), 2),
+                   # total duration of interactions with all soc. partners
+                   tot.dur = round (sum(tot.dur, na.rm = T)/60, 2)) %>%
         rename(Tag = Tag2)
       
     ## i) Combine female and male soc. intx. summaries post-manipulation
       intx_post_sum <- bind_rows(female_intx_post_sum, 
                                 male_intx_post_sum)
       
-    ## j) Left join intx post-manipulation data to the chr15_attrib_df
+    ## j) Left join intx post-manipulation data to the chr15_attrib_post_df
       chr15_attrib_post_df <- chr15_attrib_post_df  %>%
         left_join(intx_post_sum,
                   by = c('Tag' = 'Tag'), 
                   copy = F) 
 
-    ## l) change Tag from double to character
-      chr15_attrib_df$Tag <- as.character(chr15_attrib_df$Tag)
+    ## k) change Tag from double to character
       chr15_attrib_pre_df$Tag <- as.character(chr15_attrib_pre_df$Tag)
       chr15_attrib_post_df$Tag <- as.character(chr15_attrib_post_df$Tag)
  
@@ -203,12 +194,12 @@
                                                     weighted=TRUE,
                                                     mode = 'lower')
       
-    ## b) calculate node strength (sum of id row and column counts) 
+    ## b) calculate strength (sum of id row and column counts) 
       # pre-manipulation
       soc_intx_pre_graph_strength <- igraph::strength(soc_intx_pre_graph, 
                                           vids = V(soc_intx_pre_graph))
       
-    ## c) calculate node degree (sum of id row and column cells not zero)
+    ## c) calculate degree (sum of id row and column cells not zero)
       # pre-manipulation
       soc_intx_pre_graph_degree <- igraph::degree(soc_intx_pre_graph, 
                                           v = V(soc_intx_pre_graph))
@@ -229,12 +220,12 @@
                                                         weighted=TRUE,
                                                         mode = 'lower')
       
-    ## g) calculate node strength (sum of id row and column counts) 
+    ## g) calculate  strength (sum of id row and column counts) 
       # post-manipulation
       soc_intx_post_graph_strength <- igraph::strength(soc_intx_post_graph, 
                                               vids = V(soc_intx_post_graph))
       
-    ## h) calculate node degree (sum of id row and column cells not zero)
+    ## h) calculate  degree (sum of id row and column cells not zero)
       # post-manipulation
       soc_intx_post_graph_degree <- igraph::degree(soc_intx_post_graph, 
                                           v = V(soc_intx_post_graph))
@@ -255,28 +246,36 @@
         left_join(soc_intx_pre_graph_df,
                   by = c('Tag' = 'Tag'), 
                   copy = F) 
+    
+    ## l) replace any NA in pre_df for specified columns
+      chr15_attrib_pre_df <- chr15_attrib_pre_df  %>%
+        mutate_at(vars('n.unique.soc.partner.pre':'tot.dur'), 
+                  ~replace_na(., 0))
       
-    ## l) Left join soc_intx_post_graph_df to chr15_attrib_post_df
+    ## m) Left join soc_intx_post_graph_df to chr15_attrib_post_df
       chr15_attrib_post_df <- chr15_attrib_post_df  %>%
         left_join(soc_intx_post_graph_df,
                   by = c('Tag' = 'Tag'), 
                   copy = F) 
       
+    ## n) replace any NA in post_df for specified columns
+      chr15_attrib_post_df <- chr15_attrib_post_df  %>%
+        mutate_at(vars('n.unique.soc.partner.post':'tot.dur'), 
+                  ~replace_na(., 0))
       
 
-      
-      
+   
 ###############################################################################
-##############                4. Export data files               ##############
+##############                   4. Export data                  ##############
 ###############################################################################
       
   ### 4.1 Export data to an RData file 
       # Files are saved in the 'data' folder in the working directory as an
       # RData file.
       
-    ## a) Save and export data for CHR 2015 node level mediation analysis
+    ## a) Save and export data for CHR 2015  level mediation analysis
       save(file = here('data/5_6_chr15_mediation_data.RData'), 
-           list = c('chr15_attrib_df', 'chr15_attrib_pre_df', 
+           list = c('chr15_attrib_pre_df', 
                     'chr15_attrib_post_df', 'soc_intx_pre_graph', 
                     'soc_intx_post_graph', 'chr15_intx_pre_20rssi_mat', 
                     'chr15_intx_post_20rssi_mat'))
@@ -286,13 +285,13 @@
       # Files are saved in the 'data' folder in the working directory as an
       # RData file.
       
-    ## a) data for CHR 2015 pre-manipulation node level
+    ## a) data for CHR 2015 pre-manipulation  level
       # mediation analysis to .csv file
       write.csv(chr15_attrib_pre_df, 
                 file = here('data/6_chr15_mediation_pre_manip_data.csv'), 
                 row.names = T)
       
-    ## b) data for CHR 2015 pre-manipulation node level
+    ## b) data for CHR 2015 pre-manipulation level
       # mediation analysis to .csv file
       write.csv(chr15_attrib_post_df, 
                 file = here('data/6_chr15_mediation_post_manip_data.csv'), 

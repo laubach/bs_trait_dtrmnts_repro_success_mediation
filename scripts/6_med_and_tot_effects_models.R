@@ -1,9 +1,9 @@
 ################################################################################
-#############        The role of age and plumage traits as         #############  
-#############       determinants of reproductive success and       #############
-#############       the mediating role of social interactions      #############
+#############       Testing the mediating role of female-male      #############  
+#############    social interactions on the relationship between   #############
+#############             age and reproductive success.            #############
 #############                                                      #############
-#############                 6. Mediation analysis                #############
+#############        6. Mediation and total effects models         #############
 #############                                                      #############
 #############                   By: Zach Laubach                   #############
 #############                 created: 29 Sept 2024                #############
@@ -12,33 +12,9 @@
 
 
 
-### PURPOSE: Run mediation models for node level assortative traits
-  ## Model Sets
-    # Model context 1: tot repro ~ original color & pre-manip soc intx.
-                    #  egg/1st clutch ~ original color & pre-manip soc intx.
-          # NOTE: for tot repro, male models should be subset to those NOT manip.
-
-    # Model context 2: replace clutch ~ post-manip color & post-manip soc intx.
-          # NOTE: for replace clutch, male models should be subset to those manip.
-
-    # Model context 3: replace clutch ~ post-manip color & pre-manip soc intx.
-          # NOTE: for replace clutch, male models should be subset to those manip.
-
-  ## Social network measures, for both pre and post manip., 
-    # Social intx metrics 1: all females and males
-    
-    # Social intx metrics 2: females and males among social mates
-
-    # Social intx metrics 3: females and males excluding social mates
-
-# Should social interactions be restricted to include only manipulated vs 
-# unmanipulated males when reproductive success is also limited to males that
-# are unmanipulated vs manipulated
-          
-    
-                        
-  
-  
+### PURPOSE: Run mediation and total effects models for traits and reproductive
+           # success
+         
   # Code Blocks
     # 1. Configure work space
     # 2. Load RData
@@ -47,7 +23,7 @@
     # 5. Age association with plumage traits 
     # 6. Soc. net. metrics association with reproduction
     # 7. Age by soc. net. metrics interaction
-    # 8. Effects decomposition
+    # 8. Export data 
 
     
 
@@ -70,38 +46,17 @@
 
       # load here packages
         library ('here')
-     
-    ## b) Graph Plotting and Visualization Packages
-      # load ggplot2 packages
-      library ('ggplot2')
       
-      # load ggeffects packages
-        library('ggeffects')
-      
-      # load gridExtra packages
-        library('gridExtra')
-      
-    ## c) Modeling Packages
+    ## b) Modeling Packages
       
       # load MASS (negative binomial model)
         library('MASS')
-      
-      # load mediation
-        library('mediation')
-      
-      # load mediation for count based mediation analysis
-        #library('maczic')
-    
+
       # load performance
         library('performance')
       
-      # library('broom')
-        library('broom.mixed')
-      
-        library('medflex')
-      
-      # load dharma
-        library('DHARMa')
+      # load lmPerm
+        library('lmPerm')
 
         
   ### 1.3 Get Version and Session Info
@@ -132,12 +87,7 @@
 ###############################################################################
 ##############   3.Trait associations with reproductive success   #############
 ###############################################################################
-  
-    # NOTEs on reproductive success    
-    # Female total.offspring = Clutch.1.eggs + Clutch.2.Kids + Clutch.3.Kids
-    # Male total.offspring = Clutch1.Offspring + Clutch.2.WP.Kids + Clutch.2.EP   
-    # + Clutch.2.WP.Kids + Clutch.2.EP 
-    
+
   ### 3.1 Female age association with reproductive success
     ## a) female age association with total fecundity
       fem.age.tot.fecund <- glm(total.fecundity ~ 
@@ -162,13 +112,11 @@
                                             Sex == 'm' &
                                             #Color.manipulation. == 'n' &
                                             !is.na(attmpt.1.tot.pat)))
-      
      
     ## b) model summary
       summary(m.age.clutch.1.pat)    # model summary 
       confint(m.age.clutch.1.pat, level = 0.95, method = 'profile')
       #plot(m.age.clutch.1.pat)
-      
 
     ## c) male age association with second clutch paternity
       m.age.clutch.2.pat <- glm(attmpt.2.tot.pat ~ 
@@ -351,6 +299,23 @@
       summary(fem.age.strength.pre)    # model summary 
       confint(fem.age.strength.pre, level = 0.95, method = 'profile')  
       #plot(fem.age.strength.pre)       # check residuals
+      
+      # use lmPerm to compute permutation p-values to check for issues w/
+      # non-independence in social network measures
+  ### Note. B. Bolker - https://mac-theobio.github.io/QMEE/lectures/permutation_examples.notes.html
+    # lmp() seems to automatically change the contrast settings from the 
+    # default treatment contrast to sum-to-zero contrasts, so that the reported 
+    # effect size is half what it was (3.75/2), because it is computing the 
+    # difference between the (unweighted) average of the two groups and the 
+    # first group (field).
+      # set.seed (1234)
+      # fem.age.strength.pre.perm <- lmp(strength.pre ~ 
+      #                               Age.category,
+      #                             data = subset(chr15_attrib_pre_df,
+      #                                           Sex == 'f' &
+      #                                             !is.na(strength.pre) &
+      #                                             !is.na(total.fecundity)))
+      # summary(fem.age.strength.pre.perm)    # model summary 
    
     ## c) female age association with association degree
       # pre-manip
@@ -381,7 +346,6 @@
       summary(fem.age.strength.post)    # model summary 
       confint(fem.age.strength.post, level = 0.95, method = 'profile')  
       #plot(fem.age.strength.post)       # check residuals
-      #check_overdispersion(fem.age.strength.post)
       
     ## g) female age association with association degree
       # post manip
@@ -397,83 +361,73 @@
       summary(fem.age.degree.post)    # model summary 
       confint(fem.age.degree.post, level = 0.95, method = 'profile')
       #plot(fem.age.degree.post)       # check residuals
-      # check for over/under dispersion; dispers ratio >> 1 over; << 1 under
-      #check_overdispersion(fem.age.degree.post)
       
-      
-    ### 4.2 Male age associations with node level social network measures
-      ## a) male age association with with 
-          # association strength pre-manip
-        m.age.strength.pre <- glm(strength.pre ~ 
-                                        Age.category,
-                                        family = 'gaussian',
-                                        data = subset(chr15_attrib_pre_df,
-                                                Sex == 'm' &
-                                                  !is.na(strength.pre) &
-                                                  !is.na(attmpt.1.tot.pat)))
-      
-      ## b) model summary
-        summary(m.age.strength.pre)    # model summary 
-        confint(m.age.strength.pre, level = 0.95, method = 'profile') 
-        #plot(m.age.strength.pre)       # check residuals
-        # check for over/under dispersion; dispers ratio >> 1 over; << 1 under
-        #check_overdispersion(m.age.strength.pre)
-      
-      ## c) male age association with association degree
-        # pre-manip
-        m.age.degree.pre <- glm(degree.pre ~ 
+
+  ### 4.2 Male age associations with node level social network measures
+    ## a) male age association with with 
+      # association strength pre-manip
+      m.age.strength.pre <- glm(strength.pre ~ 
                                       Age.category,
                                       family = 'gaussian',
                                       data = subset(chr15_attrib_pre_df,
-                                             Sex == 'm' &
-                                             #Color.manipulation. == 'n' &
-                                             !is.na(degree.pre) &
-                                             !is.na(attmpt.1.tot.pat)))
-        
-      ## d) model summary
-        summary(m.age.degree.pre)    # model summary 
-        confint(m.age.degree.pre, level = 0.95, method = 'profile')
-        #plot(m.age.degree.pre)       # check residuals
-        # check for over/under dispersion; dispers ratio >> 1 over; << 1 under
-        #check_overdispersion(m.age.degree.pre)
+                                              Sex == 'm' &
+                                              !is.na(strength.pre) &
+                                              !is.na(attmpt.1.tot.pat)))
       
-      ## e) male age association with with 
-        # association strength post manip
-        m.age.strength.post<- glm(strength.post ~ 
-                                        Age.category,
-                                        family = 'gaussian',
-                                        data = subset(chr15_attrib_post_df,
-                                                Sex == 'm' &
-                                                #Color.manipulation. == 'n' &
-                                                !is.na(strength.post) &
-                                                !is.na(attmpt.2.tot.pat)))
+    ## b) model summary
+      summary(m.age.strength.pre)    # model summary 
+      confint(m.age.strength.pre, level = 0.95, method = 'profile') 
+      #plot(m.age.strength.pre)       # check residuals
+          
+    ## c) male age association with association degree
+      # pre-manip
+      m.age.degree.pre <- glm(degree.pre ~ 
+                                    Age.category,
+                                    family = 'gaussian',
+                                    data = subset(chr15_attrib_pre_df,
+                                           Sex == 'm' &
+                                           #Color.manipulation. == 'n' &
+                                           !is.na(degree.pre) &
+                                           !is.na(attmpt.1.tot.pat)))
         
-      ## f) model summary
-        summary(m.age.strength.post)    # model summary 
-        confint(m.age.strength.post, level = 0.95, method = 'profile') 
-        #plot(m.age.strength.post)       # check residuals
-        # check for over/under dispersion; dispers ratio >> 1 over; << 1 under
-        #check_overdispersion(m.age.strength.post)
-        
-      ## g) male age association with association degree
-        # post manip
-        m.age.degree.post <- glm(degree.post ~ 
+    ## d) model summary
+      summary(m.age.degree.pre)    # model summary 
+      confint(m.age.degree.pre, level = 0.95, method = 'profile')
+      #plot(m.age.degree.pre)       # check residuals
+
+    ## e) male age association with with 
+      # association strength post manip
+      m.age.strength.post<- glm(strength.post ~ 
                                       Age.category,
                                       family = 'gaussian',
                                       data = subset(chr15_attrib_post_df,
                                               Sex == 'm' &
                                               #Color.manipulation. == 'n' &
-                                              !is.na(degree.post) &
+                                              !is.na(strength.post) &
                                               !is.na(attmpt.2.tot.pat)))
         
-      ## h) model summary
-        summary(m.age.degree.post)    # model summary 
-        confint(m.age.degree.post, level = 0.95, method = 'profile')
-        #plot(m.age.degree.post)       # check residuals
-        # check for over/under dispersion; dispers ratio >> 1 over; << 1 under
-        #check_overdispersion(m.age.degree.post)  
+    ## f) model summary
+      summary(m.age.strength.post)    # model summary 
+      confint(m.age.strength.post, level = 0.95, method = 'profile') 
+      #plot(m.age.strength.post)       # check residuals
         
+    ## g) male age association with association degree
+      # post manip
+      m.age.degree.post <- glm(degree.post ~ 
+                                    Age.category,
+                                    family = 'gaussian',
+                                    data = subset(chr15_attrib_post_df,
+                                            Sex == 'm' &
+                                            #Color.manipulation. == 'n' &
+                                            !is.na(degree.post) &
+                                            !is.na(attmpt.2.tot.pat)))
         
+    ## h) model summary
+      summary(m.age.degree.post)    # model summary 
+      confint(m.age.degree.post, level = 0.95, method = 'profile')
+      #plot(m.age.degree.post)       # check residuals
+        
+     
   ### 4.3 Female plumage trait associations with node level 
       # social network measures
     ## a) female breast brightness association with 
@@ -621,7 +575,6 @@
       #check_overdispersion(fem.Bbright.degree.post)  
 
       
-      
   ### 4.4 Male plumage trait associations with node level 
     # social network measures
     ## a) male breast brightness association with 
@@ -755,7 +708,6 @@
       # check for over/under dispersion; dispers ratio >> 1 over; << 1 under
       #check_overdispersion(m.post.Rbright.degree.post) 
       
-      
     ## o) male belly brightness association with 
       # association degree post manip
       m.Bbright.degree.post <- glm(degree.post ~ 
@@ -774,12 +726,6 @@
       #plot(m.Bbright.degree.post)       # check residuals
       # check for over/under dispersion; dispers ratio >> 1 over; << 1 under
       #check_overdispersion(m.Bbright.degree.post) 
-      
-
-#***** NOTE
-  # for the mediation model repro ~ age + strength what would our expectation be 
-  # should we also look at the subset of individuals who are treated or 
-  # an intx between treatment and breast brightness
       
       
       
@@ -873,8 +819,7 @@
       #plot(fem.strength.pre.tot.fecund)       # check residuals
       # check for over/under dispersion; dispers ratio >> 1 over; << 1 under
       #check_overdispersion(fem.strength.pre.tot.fecund) 
-      
-      
+ 
     ## c) female pre-manip degree association with 
       # total fecundity
       fem.deg.pre.tot.fecund <- glm(total.fecundity ~ 
@@ -962,15 +907,15 @@
                                           !is.na(attmpt.1.tot.pat)))
       
       
-      ## d) model summary
+    ## d) model summary
       summary(m.deg.pre.clutch.1.pat)    # model summary 
       confint(m.deg.pre.clutch.1.pat, 
               level = 0.95, method = 'profile')
       #plot(m.deg.pre.clutch.1.pat)       # check residuals
       # check for over/under dispersion; dispers ratio >> 1 over; << 1 under
-      #check_overdispersion(m.deg.pre.clutch.1.pat) 
+      #check_overdispersion(m.deg.pre.clutch.1.pat)
       
-    ## e) male post manip strength association with 
+    ## d) male post manip strength association with 
       # clutch 2 total paternity
       m.strength.post.clutch.2.pat <- glm(attmpt.2.tot.pat ~ 
                                           scale(strength.post),
@@ -981,7 +926,7 @@
                                                 !is.na(attmpt.1.tot.pat)))
       
       
-      ## f) model summary
+    ## f) model summary
       summary(m.strength.post.clutch.2.pat)    # model summary 
       confint(m.strength.post.clutch.2.pat, 
               level = 0.95, method = 'profile')
@@ -1006,7 +951,7 @@
       #plot(m.deg.post.clutch.2.pat)       # check residuals
       # check for over/under dispersion; dispers ratio >> 1 over; << 1 under
       #check_overdispersion(m.deg.post.clutch.2.pat) 
-      
+
     ## i) male pre-manip strength association with 
       # all cluches total paternity
       m.strength.pre.tot.pat <- glm(total.paternity ~ 
@@ -1034,7 +979,6 @@
                                           Sex == 'm' &
                                           !is.na(degree.pre) &
                                           !is.na(total.paternity)))
-      
       
     ## l) model summary
       summary(m.deg.pre.tot.pat)    # model summary 
@@ -1130,289 +1074,20 @@
       
  
 ###############################################################################
-##############              8. Effects decomposition             ##############
+##############                  8. Export data                   ##############
 ###############################################################################  
 
       
-  ### 8.1 Female mediation model: female age plus pre-manip strength
-      # with total fecundity.
-      # exposure = age
-      # mediators = pre-manip strength
-      # outcomes = total fecundity (females)
+  ### 8.1 Export data to an RData file 
+      # Files are saved in the 'data' folder in the working directory as an
+      # RData file.
       
-      # Estimate the average causal mediation effects (ACME) and the 
-      # average direct effect (ADE); 'mediation' package
-      # mediation model = fem.age.strength.pre;see section 4.1
-      # outcome model = fem.age.pre.strength.tot.fecund
+    ## a) Save and export data for CHR 2015 mediation analysis
+      save(file = here('data/7_chr15_effect_decomp_data.RData'), 
+           list = c('chr15_attrib_pre_df', 'chr15_attrib_post_df'))
       
-    ## a) fit full model
-      fem.age.pre.strength.tot.fecund <- glm(total.fecundity ~ 
-                                          Age.category + strength.pre,
-                                          # test for intx
-                                          #Age.category * strength.pre,
-                                          family = 'gaussian',
-                                          data = subset(chr15_attrib_pre_df,
-                                                Sex == 'f' &
-                                                !is.na(strength.pre) &
-                                                !is.na(total.fecundity)))
-    ## b) full model summary
-      summary(fem.age.pre.strength.tot.fecund)
+    ## b) Save and export model objects CHR 2015 mediation analysis
+      save(file = here('data/7_chr15_effect_decomp_mods.RData'), 
+           list = c('fem.age.strength.pre', 'fem.age.degree.post', 
+                    'm.age.strength.pre', 'm.age.degree.post'))
       
-    ## c) Estimate average causal mediation effects
-      med.out.fem.age.pre.strength.fecund <- mediate(fem.age.strength.pre, 
-                                                fem.age.pre.strength.tot.fecund, 
-                                                treat = "Age.category", 
-                                                mediator = "strength.pre",
-                                                boot = TRUE, sims = 1000) 
-    ## d) test for exposure*mediator intx
-      # test.TMint(med.out.fem.age.pre.strength.fecund, 
-      #            conf.level = .95)
-      
-    ## e) Average causal mediation model summary
-      summary(med.out.fem.age.pre.strength.fecund)
-      
-    # ## f) sensitivity analysis for unmeasured confounder between mediator and 
-      # outcome
-      # sens.out <- medsens(med.out.fem.age.pre.strength.fecund, 
-      #                     rho.by = 0.1, effect.type = "indirect", 
-      #                     sims = 1000)
-      # summary(sens.out)
-    
-##*** MODEL FITTING TEST using 'medflex' package
-    ## g) Expanded data and weights for female pre-manip strength by age
-      # 'expand the data' by estimating mediator for different levels of the 
-      # exposure to generate weights; implemented in medflex 
-      exp.wght.fem.age.strength.pre <- neWeight(fem.age.strength.pre)
-      weights(exp.wght.fem.age.strength.pre)
-      
-    # h) Ne_impute method; implemented in medflex using full model
-      # fem.age.pre.strength.tot.out 
-      exp.imp.fem.age.strength.pre <- neImpute(fem.age.pre.strength.tot.out)
-  
-
-    ## i) Natural effects model female pre-manip strength by age 
-      # calculate bootstrapped SE based resampling original data 
-      # with replacement (1000 iterations); implemented in medflex 
-      
-      # Weighting method   
-      ne.wght.fem.age.strength.pre.fecund <- neModel(total.fecundity ~ 
-                                      Age.category0 + Age.category1,
-                                      family = gaussian, 
-                                      expData = exp.wght.fem.age.strength.pre)
-      
-      summary(ne.wght.fem.age.strength.pre.fecund)
-      
-      # Imputation method  
-      ne.imp.fem.age.strength.pre.fecund <- neModel(total.fecundity ~ 
-                                      Age.category0 + Age.category1,
-                                      family = gaussian, 
-                                      expData = exp.imp.fem.age.strength.pre)
-      
-      summary(ne.imp.fem.age.strength.pre.fecund)
-
-    ## j) Decomposition of the natural effects based on weights method:
-      
-      # Weighting method   
-      eff.decomp.fem.age.strength.pre.fecund.wght <- 
-        neEffdecomp(ne.wght.fem.age.strength.pre.fecund)
-      
-      summary(eff.decomp.fem.age.strength.pre.fecund.wght)
-      confint(eff.decomp.fem.age.strength.pre.fecund.wght)
-      
-      # Imputation method  
-      eff.decomp.fem.age.strength.pre.fecund.imp <- 
-        neEffdecomp(ne.imp.fem.age.strength.pre.fecund)
-      
-      summary(eff.decomp.fem.age.strength.pre.fecund.imp)
-      confint(eff.decomp.fem.age.strength.pre.fecund.imp)
-
-      
-  ### 8.2 Female mediation model: female age plus post manip degree
-        # with total fecundity.
-        # exposure = age
-        # mediators = post manip degree
-        # outcomes = total fecundity (females)  
-      
-        # Estimate the average causal mediation effects (ACME) and the 
-        # average direct effect (ADE); 'mediation' package
-        # mediation model = fem.age.degree.post; see section 4.1
-        # outcome model = fem.age.post.deg.tot.fecund
-        
-    ## a) fit full model
-      fem.age.post.deg.tot.fecund <- glm(total.fecundity ~ 
-                                        Age.category + degree.post,
-                                        # test for intx
-                                        # Age.category * degree.post,
-                                        family = 'gaussian',
-                                        data = subset(chr15_attrib_post_df,
-                                                  Sex == 'f' &
-                                                  !is.na(degree.post) &
-                                                  !is.na(total.fecundity)))
-    ## b) full model summary
-      summary(fem.age.post.deg.tot.fecund)
-        
-    ## d) Estimate average causal mediation effects
-      med.out.fem.age.post.deg.fecund <- mediate(fem.age.degree.post, 
-                                                   fem.age.post.deg.tot.fecund, 
-                                                   treat = "Age.category", 
-                                                   mediator = "degree.post",
-                                                   boot = TRUE, sims = 1000) 
-        
-    ## d) test for exposure*mediator intx
-        # test.TMint(med.out.fem.age.post.deg.fecund, 
-        #            conf.level = .95)
-        
-    ## e) Average causal mediation model summary
-      summary(med.out.fem.age.post.deg.fecund)
-        
-    # ## f) sensitivity analysis for unmeasured confounder between mediator and 
-        # outcome
-        # sens.out <- medsens(med.out.fem.age.post.deg.fecund, 
-        #                     rho.by = 0.1, effect.type = "indirect", 
-        #                     sims = 1000)
-        # summary(sens.out)
-        
-        
-  ### 8.3 Male mediation model: male age plus pre-manip strength
-        # with first clutch total paternity.
-        # exposure = age
-        # mediators = pre-manip strength
-        # outcomes = clutch 1 total paternity 
-        
-       # Estimate the average causal mediation effects (ACME) and the 
-        # average direct effect (ADE); 'mediation' package
-        # mediation model = m.age.strength.pre; see section 4.2
-        # outcome model = m.age.pre.strength.attmpt.1.tot.pat.out
-        
-    ## a) fit full model
-      m.age.pre.strength.attmpt.1.tot.pat.out <- glm(attmpt.1.tot.pat ~ 
-                                        #Age.category + strength.pre,
-                                        # test for intx
-                                        Age.category * strength.pre,
-                                        family = 'gaussian',
-                                        data = subset(chr15_attrib_pre_df,
-                                                  Sex == 'm' &
-                                                  !is.na(strength.pre) &
-                                                  !is.na(attmpt.1.tot.pat)))
-
-    ## b) full model summary
-      summary(m.age.pre.strength.attmpt.1.tot.pat.out)
-        
-    ## c) Estimate average causal mediation effects
-      med.out.m.age.pre.strength.attmpt.1.tot.pat <- mediate(m.age.strength.pre, 
-                                    m.age.pre.strength.attmpt.1.tot.pat.out, 
-                                    treat = "Age.category", 
-                                    mediator = "strength.pre",
-                                    boot = TRUE, sims = 1000) 
-        
-    ## d) test for exposure*mediator intx
-        test.TMint(med.out.m.age.pre.strength.attmpt.1.tot.pat, 
-                   conf.level = .95)
-        
-    ## e) Average causal mediation model summary
-        summary(med.out.m.age.pre.strength.attmpt.1.tot.pat)
-        
-    # ## f) sensitivity analysis for unmeasure confounder between mediator and 
-        # outcome
-        # sens.out <- medsens(med.out.m.age.pre.strength.attmpt.1.tot.pat, 
-        #                     rho.by = 0.1, effect.type = "indirect", 
-        #                     sims = 1000)
-        # summary(sens.out)        
-    
- 
-  ### 8.4 Male mediation model: male age plus post manip degree
-        # with first clutch total paternity.
-        # exposure = age
-        # mediators = post manip degree
-        # outcomes = clutch 2 total paternity 
-        
-        # Estimate the average causal mediation effects (ACME) and the 
-        # average direct effect (ADE); 'mediation' package
-        # mediation model = m.age.degree.post; see section 4.2
-        # outcome model = m.age.post.degree.attmpt.2.tot.pat.out
-        
-    ## a) fit full model
-       m.age.post.degree.attmpt.2.tot.pat.out <- glm(attmpt.2.tot.pat ~ 
-                                        Age.category + degree.post,
-                                        # test for intx
-                                        #Age.category * degree.post,
-                                        family = 'gaussian',
-                                        data = subset(chr15_attrib_post_df,
-                                                  Sex == 'm' &
-                                                  !is.na(degree.post) &
-                                                  !is.na(attmpt.2.tot.pat)))
-        
-    ## b) full model summary
-      summary(m.age.post.degree.attmpt.2.tot.pat.out)
-        
-    ## c) Estimate average causal mediation effects
-      med.out.m.age.post.degree.attmpt.2.tot.pat <- mediate(m.age.degree.post, 
-                                      m.age.post.degree.attmpt.2.tot.pat.out, 
-                                      treat = 'Age.category', 
-                                      mediator = 'degree.post',
-                                      boot = TRUE, sims = 1000) 
-        
-    # ## d) test for exposure*mediator intx
-    #   test.TMint(med.out.m.age.post.degree.attmpt.2.tot.pat, 
-    #                conf.level = .95)
-        
-    ## e) Average causal mediation model summary
-      summary(med.out.m.age.post.degree.attmpt.2.tot.pat)
-        
-    # ## f) sensitivity analysis for unmeasured confounder between mediator and 
-        # outcome
-        # sens.out <- medsens(med.out.m.age.post.degree.attmpt.2.tot.pat, 
-        #                     rho.by = 0.1, effect.type = "indirect", 
-        #                     sims = 1000)
-        # summary(sens.out)    
-        
-    
-  ### 8.5 Male mediation model: male age plus pre-manip strength
-        # with all clutches total paternity.
-        # exposure = age
-        # mediators = pre-manip strength
-        # outcomes = all clutches total paternity 
-        
-        # Estimate the average causal mediation effects (ACME) and the 
-        # average direct effect (ADE); 'mediation' package
-        # mediation model = m.age.strength.pre; see section 4.2
-        # outcome model = m.age.pre.strength.total.paternity.out
-      
-    ## a) fit full model
-      m.age.pre.strength.total.paternity.out <- glm(total.paternity ~ 
-                                              Age.category + strength.pre,
-                                              # test for intx
-                                              #Age.category * strength.pre,
-                                              family = 'gaussian',
-                                              data = subset(chr15_attrib_pre_df,
-                                                     Sex == 'm' &
-                                                     !is.na(strength.pre) &
-                                                     !is.na(total.paternity)))
-      
-    ## b) full model summary
-      summary(m.age.pre.strength.total.paternity.out)
-      
-    ## c) Estimate average causal mediation effects
-      med.out.m.age.pre.strength.total.paternity <- mediate(m.age.strength.pre, 
-                                        m.age.pre.strength.total.paternity.out, 
-                                        treat = "Age.category", 
-                                        mediator = "strength.pre",
-                                        boot = TRUE, sims = 1000) 
-      
-    # ## d) test for exposure*mediator intx
-    #   test.TMint(med.out.m.age.pre.strength.total.paternity, 
-    #              conf.level = .95)
-      
-    ## e) Average causal mediation model summary
-      summary(med.out.m.age.pre.strength.total.paternity)
-      
-    # ## f) sensitivity analysis for unmeasure confounder between mediator and 
-      # outcome
-      # sens.out <- medsens(med.out.m.age.pre.strength.total.paternity, 
-      #                     rho.by = 0.1, effect.type = "indirect", 
-      #                     sims = 1000)
-      # summary(sens.out)      
-        
- 
-     # tidy(med.out.m.age.pre.strength.total.paternity)
-   

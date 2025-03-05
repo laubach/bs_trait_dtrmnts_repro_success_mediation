@@ -1,23 +1,23 @@
 ################################################################################
-#############        The role of age and plumage traits as         #############  
-#############       determinants of reproductive success and       #############
-#############       the mediating role of social interactions      #############
+#############       Testing the mediating role of female-male      #############  
+#############    social interactions on the relationship between   #############
+#############             age and reproductive success.            #############
 #############                                                      #############
 #############               2. Tidy attribute data                 #############
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 14 Aug 2024                  #############
-#############               last updated: 3 Dec 2024               #############
+#############              last updated: 24 Feb 2024               #############
 ################################################################################
 
 
   ### PURPOSE: Tidy the attribute data for male and female barn swallows
   
   # Code Blocks
-    # 1: Configure work space
-    # 2: Import data 
-    # 3: Tidy attribute data frame
-    # 4: Export data files
+    # 1. Configure work space
+    # 2. Import data 
+    # 3. Tidy attribute data frame
+    # 4. Export data
   
 
 
@@ -108,7 +108,7 @@
       
 
 ###############################################################################
-##############                4. Export data files               ##############
+##############                  4. Export data                   ##############
 ###############################################################################
       
   ### 4.1 Export data to an RData file 

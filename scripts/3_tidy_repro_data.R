@@ -1,13 +1,13 @@
 ################################################################################
-#############        The role of age and plumage traits as         #############  
-#############       determinants of reproductive success and       #############
-#############       the mediating role of social interactions      #############
+#############       Testing the mediating role of female-male      #############  
+#############    social interactions on the relationship between   #############
+#############             age and reproductive success.            #############
 #############                                                      #############
 #############          3. Tidy reproductive success data           #############
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 20 Aug 2024                  #############
-#############              last updated: 3 Dec 2024                #############
+#############             last updated: 24 Feb 2024                #############
 ################################################################################
 
 
@@ -15,11 +15,11 @@
              # female barn swallows
   
   # Code Blocks
-    # 1: Configure work space
-    # 2: Import data 
-    # 3: Tidy reproductive success data 
-    # 4: Check and tidy missing data 
-    # 5: Export data files
+    # 1. Configure work space
+    # 2. Import data 
+    # 3. Tidy reproductive success data 
+    # 4. Check and tidy missing data 
+    # 5. Export data
   
 
 
@@ -136,17 +136,19 @@
     
 #*****************************************************************************#
 #************************* Manual data cleaning ******************************#
-#*
-      # NOTE: Tag ID 57 does not pair until late Aug...fundamentally different
-      # than other birds, so remove it here.                
-    ## a) Check/remove bird tag 57 from chr15_attrib_pw and chr15_attrib_df
+
+    ## a) Remove Tag 116 female with incomplete fecundity (who left site  
+      # after egg removal) 2640-97117 and males with incomplete paternity 
+      # (who were never included in paternity analysis) Tag 57, 1921-30295 
+      # and Tag 79, 2640-97175
       chr15_attrib_df <- chr15_attrib_df %>%
-        filter(!(Tag == 57))   
+        filter(!(Band.ID == '2640-97117' | 
+                   Band.ID == '1921-30295' |
+                   Band.ID == '2640-97175'))     
       
-    ## b) Check/remove bird tag remove males who are untagged from 
-      # chr15_attrib_df
-      chr15_attrib_df <- chr15_attrib_df %>%
-        filter(!(Band.ID == '2640-97157' | Band.ID == '2640-97158'))   
+  # Note: males 2640-97153, 2640-97157, and 2640-97158 were never tagged,
+  # so not in attribute table and dropped from repro_suc data upon left join
+  # to chr15_attrib_df
       
 #*****************************************************************************#
 #*****************************************************************************#
@@ -154,40 +156,44 @@
       
   ### 4.2 Create attribute data frames that match the bird IDs in the 
       # social networks df  
-  # Remove birds with insufficient premanip network data or just note and exclude in
-      # downstream models 
+  # Remove birds with insufficient premanip network data or just note and 
+      # exclude in downstream models 
 #*****************************************************************************#
 #************************* Manual data cleaning ******************************#
       # NOTE: Remove birds with insufficient premanip network data based on
       # checking the earliest vs latest encounter net to ensure networks
       # are based on when all Tags working
       
-    ## a) remove bird 49 from both pre and post manip data frames to mactch
+    ## a) remove bird 49 from both pre and post manip data frames to match
           # social networks 
       # Tag worked from 6/13-6/14
       chr15_attrib_pre_df <- chr15_attrib_df %>%
         filter(!(Tag == 49 )) 
+  
       
+      #   NOTE: Tag 108 for female 2640-97169 never worked, so not included in 
+      # either pre or post network or attribute file
       
       # NOTE: Remove birds with insufficient post manip network data based on
       # checking the earliest vs latest encounter net to ensure networks
       # are based on when all Tags working
       
-    ## b) Remove birds 67, 40, 61, 51, 52, and 55 from post manip networks 
-      # Tag stopped on 6/19
+    ## b) Remove males 55, 61, 67 and females 40, 51, 52 and from post manip 
+      # networks. Tag stopped on 6/19
       chr15_attrib_post_df <- chr15_attrib_pre_df %>%
-        filter(!(Tag == 67)) %>%
-        filter(!(Tag == 40)) %>%
+        filter(!(Tag == 55)) %>% # males
+        #filter(!(Tag == 57)) %>% already removed for incomplete fecundity
         filter(!(Tag == 61)) %>%
+        filter(!(Tag == 67)) %>%
+        filter(!(Tag == 40)) %>% # females
         filter(!(Tag == 51)) %>%
         filter(!(Tag == 52)) %>%
-        filter(!(Tag == 55)) %>%
-        # and birds 56, 80, 82, 119 which have no Tag data
-        filter(!(Tag == 56)) %>%
-        filter(!(Tag == 80)) %>%
+        #filter(!(Tag == 116)) %>% already removed for incomplete paternity
+        # and birds 56, 80, 82 which have no Tag data by 6/19
+        filter(!(Tag == 56)) %>% # male
         filter(!(Tag == 82)) %>%
-        filter(!(Tag == 119))
-        
+        filter(!(Tag == 80)) # female
+         
       
 #*****************************************************************************#
 #*****************************************************************************#  
@@ -195,7 +201,7 @@
       
       
 ###############################################################################
-##############                5. Export data files               ##############
+##############                  5. Export data                   ##############
 ###############################################################################
       
   ### 5.1 Export data to an RData file 
@@ -204,7 +210,7 @@
       
     ## a) Save and export data for CHR 2015 pre-manipulation repro. success
       save(file = here('data/4_chr15_attrib_data.RData'), 
-           list = c('chr15_attrib_df', 'chr15_attrib_pre_df', 
+           list = c('chr15_attrib_pre_df', 
                     'chr15_attrib_post_df'))
       
       

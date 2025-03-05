@@ -1,13 +1,13 @@
 ################################################################################
-#############        The role of age and plumage traits as         #############  
-#############       determinants of reproductive success and       #############
-#############       the mediating role of social interactions      #############
+#############       Testing the mediating role of female-male      #############  
+#############    social interactions on the relationship between   #############
+#############             age and reproductive success.            #############
 #############                                                      #############
 #############    5. Descriptive statistics and data exploration    #############
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 21 Aug 2024                  #############
-#############              last updated: 3 Dec 2024                #############
+#############             last updated: 25 Feb 2024                #############
 ################################################################################
 
 
@@ -40,24 +40,12 @@
       
     # load igraph package
       library ('igraph')  
-      
-    # load assortnet package
-      library ('assortnet')  
-    
-    # # load corrr package
-    #   library ('corrr')
     
     # load lubridate package
       library ('lubridate')
-    
+      
     # load gridExtra packages
       library ('gridExtra')  
-    
-    # load smplot2 packages   
-      library('smplot2')
-      
-    # load chisq.posthoc.test package  
-      library('chisq.posthoc.test')
       
     # load here package
       library ('here')
@@ -149,6 +137,18 @@
                                                 na.rm = T), 2),
                    max.R_avg.bright = round(max(R_avg.bright,
                                                 na.rm = T), 2),
+                   # belly average brightness pre-manip
+                   n.B_avg.bright = sum(!is.na(B_avg.bright)),
+                   avg.B_avg.bright = round (mean(B_avg.bright, 
+                                                  na.rm = T),2),
+                   stdev.B_avg.bright = round (sd(B_avg.bright, 
+                                                  na.rm = T), 2),
+                   med.B_avg.bright = round(median(B_avg.bright,
+                                                   na.rm = T), 2),
+                   min.B_avg.bright = round(min(B_avg.bright,
+                                                na.rm = T), 2),
+                   max.B_avg.bright = round(max(B_avg.bright,
+                                                na.rm = T), 2)
                    ) %>%
         ungroup()
       
@@ -170,10 +170,10 @@
       # breast average brightness post-manip
       summarise(n.R.bright.treat.and.orig = sum(!is.na
                                       (R.bright.treat.and.orig)),
-      avg.R.bright.treat.and.orig = round (mean
+      avg.R.bright.treat.and.orig = round(mean
                                            (R.bright.treat.and.orig, 
                                              na.rm = T),2),
-      stdev.R.bright.treat.and.orig = round (sd
+      stdev.R.bright.treat.and.orig = round(sd
                                              (R.bright.treat.and.orig, 
                                                na.rm = T), 2),
       med.R.bright.treat.and.orig = round(median
@@ -191,32 +191,22 @@
       univar_soc_intx_pre <- chr15_attrib_pre_df %>%
         group_by(Sex) %>%
         # number of unique social partners
-        summarise (n.n.unique.soc.partner.pre = sum(!is.na
-                                                    (n.unique.soc.partner.pre)),
-                   med.n.unique.soc.partner.pre = round(median
-                                                    (n.unique.soc.partner.pre,
+        summarise (n.pre = sum(!is.na(degree.pre)),
+                   med.degree.pre = round(median(degree.pre,
                                                    na.rm = T), 2),
-                   qt25.n.unique.soc.partner.pre = round(quantile
-                                                    (n.unique.soc.partner.pre, 
+                   qt25.degree.pre = round(quantile(degree.pre, 
                                                           0.25, na.rm = T), 2),
-                   qt75.n.unique.soc.partner.pre = round(quantile
-                                                    (n.unique.soc.partner.pre, 
+                   qt75.degree.pre = round(quantile(degree.pre, 
                                                           0.75, na.rm = T), 2),
-                   avg.n.unique.soc.partner.pre = round (mean
-                                                    (n.unique.soc.partner.pre, 
+                   avg.degree.pre = round(mean(degree.pre, 
                                              na.rm = T),2),
-                   stdev.n.unique.soc.partner.pre = round (sd
-                                                    (n.unique.soc.partner.pre, 
+                   stdev.degree.pre = round(sd(degree.pre, 
                                              na.rm = T), 2),
-                   min.n.unique.soc.partner.pre = round(min
-                                                    (n.unique.soc.partner.pre,
+                   min.degree.pre = round(min(degree.pre,
                                            na.rm = T), 2),
-                   max.n.unique.soc.partner.pre = round(max
-                                                    (n.unique.soc.partner.pre,
+                   max.degree.pre = round(max(degree.pre,
                                            na.rm = T), 2), 
          # max number of social interactions with any one soc. partner
-                  n.max.cnt.soc.intx.pre = sum(!is.na
-                                              (max.cnt.soc.intx.pre)),
                   med.max.cnt.soc.intx.pre = round(median
                                               (max.cnt.soc.intx.pre,
                                                           na.rm = T), 2),
@@ -239,29 +229,28 @@
                                               (max.cnt.soc.intx.pre,
                                                        na.rm = T), 2),
          # total number of social interactions with all soc. partners   
-                 n.tot.cnt.soc.intx.pre = sum(!is.na
-                                          (tot.cnt.soc.intx.pre)),
-                 med.tot.cnt.soc.intx.pre = round(median
-                                          (tot.cnt.soc.intx.pre,
+                 med.strength.pre = round(median(strength.pre,
                                                      na.rm = T), 2),
-                 qt25.tot.cnt.soc.intx.pre = round(quantile
-                                          (tot.cnt.soc.intx.pre, 
+                 qt25.strength.pre = round(quantile(strength.pre, 
                                                         0.25, na.rm = T), 2),
-                 qt75.tot.cnt.soc.intx.pre = round(quantile
-                                          (tot.cnt.soc.intx.pre, 
+                 qt75.strength.pre = round(quantile(strength.pre, 
                                                         0.75, na.rm = T), 2),
-                 avg.tot.cnt.soc.intx.pre = round (mean
-                                          (tot.cnt.soc.intx.pre, 
+                 avg.strength.pre = round(mean(strength.pre, 
                                                     na.rm = T),2),
-                 stdev.tot.cnt.soc.intx.pre = round (sd
-                                          (tot.cnt.soc.intx.pre, 
+                 stdev.strength.pre = round(sd(strength.pre, 
                                                     na.rm = T), 2),
-                 min.tot.cnt.soc.intx.pre = round(min
-                                          (tot.cnt.soc.intx.pre,
+                 min.strength.pre = round(min(strength.pre,
                                                   na.rm = T), 2),
-                 max.tot.cnt.soc.intx.pre = round(max
-                                          (tot.cnt.soc.intx.pre,
-                                                  na.rm = T), 2))
+                 max.strength.pre = round(max(strength.pre,
+                                                  na.rm = T), 2),
+         # total duration of social intx with all social partners
+               med.tot.dur.pre = round(median(tot.dur,  na.rm = T), 2),
+               qt25.tot.dur.pre = round(quantile(tot.dur, 0.25, na.rm = T), 2),
+               qt75.tot.dur.pre = round(quantile(tot.dur, 0.75, na.rm = T), 2),
+               avg.tot.dur.pre = round (mean(tot.dur, na.rm = T),2),
+               stdev.tot.dur.pre = round (sd(tot.dur, na.rm = T), 2),
+               min.tot.dur.pre = round(min (tot.dur, na.rm = T), 2),
+               max.tot.dur.pre = round(max(tot.dur, na.rm = T), 2))
       
       
     ## b) transpose the data frame for easier viewing
@@ -279,32 +268,22 @@
       univar_soc_intx_age_pre <- chr15_attrib_pre_df %>%
         group_by(Sex, Age.category) %>%
         # number of unique social partners
-        summarise (n.n.unique.soc.partner.pre = sum(!is.na
-                                                (n.unique.soc.partner.pre)),
-                   med.n.unique.soc.partner.pre = round(median
-                                                (n.unique.soc.partner.pre,
-                                                          na.rm = T), 2),
-                   qt25.n.unique.soc.partner.pre = round(quantile
-                                                (n.unique.soc.partner.pre, 
-                                                           0.25, na.rm = T), 2),
-                   qt75.n.unique.soc.partner.pre = round(quantile
-                                                (n.unique.soc.partner.pre, 
-                                                           0.75, na.rm = T), 2),
-                   avg.n.unique.soc.partner.pre = round (mean
-                                                (n.unique.soc.partner.pre, 
-                                                           na.rm = T),2),
-                   stdev.n.unique.soc.partner.pre = round (sd
-                                                (n.unique.soc.partner.pre, 
-                                                             na.rm = T), 2),
-                   min.n.unique.soc.partner.pre = round(min
-                                                (n.unique.soc.partner.pre,
-                                                          na.rm = T), 2),
-                   max.n.unique.soc.partner.pre = round(max
-                                                (n.unique.soc.partner.pre,
-                                                          na.rm = T), 2), 
-                   # max number of social interactions with any one soc. partner
-                   n.max.cnt.soc.intx.pre = sum(!is.na
-                                                (max.cnt.soc.intx.pre)),
+        summarise (n.pre = sum(!is.na(degree.pre)),
+                   med.degree.pre = round(median(degree.pre,
+                                                 na.rm = T), 2),
+                   qt25.degree.pre = round(quantile(degree.pre, 0.25, 
+                                                    na.rm = T), 2),
+                   qt75.degree.pre = round(quantile(degree.pre, 0.75, 
+                                                    na.rm = T), 2),
+                   avg.degree.pre = round(mean(degree.pre,
+                                               na.rm = T),2),
+                   stdev.degree.pre = round(sd(degree.pre,
+                                               na.rm = T), 2),
+                   min.degree.pre = round(min(degree.pre,
+                                              na.rm = T), 2),
+                   max.degree.pre = round(max(degree.pre,
+                                              na.rm = T), 2), 
+                # max number of social interactions with any one soc. partner
                    med.max.cnt.soc.intx.pre = round(median
                                                 (max.cnt.soc.intx.pre,
                                                       na.rm = T), 2),
@@ -314,10 +293,10 @@
                    qt75.max.cnt.soc.intx.pre = round(quantile
                                                 (max.cnt.soc.intx.pre, 
                                                        0.75, na.rm = T), 2),
-                   avg.max.cnt.soc.intx.pre = round (mean
+                   avg.max.cnt.soc.intx.pre = round(mean
                                                 (max.cnt.soc.intx.pre, 
                                                        na.rm = T),2),
-                   stdev.max.cnt.soc.intx.pre = round (sd
+                   stdev.max.cnt.soc.intx.pre = round(sd
                                                 (max.cnt.soc.intx.pre, 
                                                          na.rm = T), 2),
                    min.max.cnt.soc.intx.pre = round(min
@@ -326,30 +305,29 @@
                    max.max.cnt.soc.intx.pre = round(max
                                                 (max.cnt.soc.intx.pre,
                                                       na.rm = T), 2),
-                   # total number of social interactions with all soc. partners   
-                   n.tot.cnt.soc.intx.pre = sum(!is.na
-                                                (tot.cnt.soc.intx.pre)),
-                   med.tot.cnt.soc.intx.pre = round(median
-                                                (tot.cnt.soc.intx.pre,
+                # total number of social interactions with all soc. partners   
+                   med.strength.pre = round(median(strength.pre,
                                                       na.rm = T), 2),
-                   qt25.tot.cnt.soc.intx.pre = round(quantile
-                                                (tot.cnt.soc.intx.pre, 
+                   qt25.strength.pre = round(quantile(strength.pre, 
                                                        0.25, na.rm = T), 2),
-                   qt75.tot.cnt.soc.intx.pre = round(quantile
-                                                (tot.cnt.soc.intx.pre, 
+                   qt75.strength.pre = round(quantile(strength.pre, 
                                                        0.75, na.rm = T), 2),
-                   avg.tot.cnt.soc.intx.pre = round (mean
-                                                (tot.cnt.soc.intx.pre, 
+                   avg.strength.pre = round(mean(strength.pre, 
                                                        na.rm = T),2),
-                   stdev.tot.cnt.soc.intx.pre = round (sd
-                                                (tot.cnt.soc.intx.pre, 
+                   stdev.strength.pre = round(sd(strength.pre, 
                                                          na.rm = T), 2),
-                   min.tot.cnt.soc.intx.pre = round(min
-                                                (tot.cnt.soc.intx.pre,
+                   min.strength.pre = round(min(strength.pre,
                                                       na.rm = T), 2),
-                   max.tot.cnt.soc.intx.pre = round(max
-                                                (tot.cnt.soc.intx.pre,
-                                                      na.rm = T), 2))
+                   max.strength.pre = round(max(strength.pre,
+                                                      na.rm = T), 2),
+              # total duration of social intx with all social partners
+                   med.tot.dur.pre = round(median(tot.dur,  na.rm = T), 2),
+                   qt25.tot.dur.pre = round(quantile(tot.dur, 0.25, na.rm = T), 2),
+                   qt75.tot.dur.pre = round(quantile(tot.dur, 0.75, na.rm = T), 2),
+                   avg.tot.dur.pre = round (mean(tot.dur, na.rm = T),2),
+                   stdev.tot.dur.pre = round (sd(tot.dur, na.rm = T), 2),
+                   min.tot.dur.pre = round(min (tot.dur, na.rm = T), 2),
+                   max.tot.dur.pre = round(max(tot.dur, na.rm = T), 2))
       
     ## e) transpose the data frame for easier viewing
       univar_soc_intx_age_pre <- as.data.frame(t(univar_soc_intx_age_pre))
@@ -368,32 +346,22 @@
       univar_soc_intx_post <- chr15_attrib_post_df %>%
         group_by(Sex) %>%
         # number of unique social partners
-        summarise (n.n.unique.soc.partner.post = sum(!is.na
-                                                    (n.unique.soc.partner.post)),
-                   med.n.unique.soc.partner.post = round(median
-                                                    (n.unique.soc.partner.post,
+        summarise (n.post = sum(!is.na(degree.post)),
+                   med.degree.post = round(median(degree.post,
                                                           na.rm = T), 2),
-                   qt25.n.unique.soc.partner.post = round(quantile
-                                                    (n.unique.soc.partner.post, 
+                   qt25.degree.post = round(quantile(degree.post, 
                                                            0.25, na.rm = T), 2),
-                   qt75.n.unique.soc.partner.post = round(quantile
-                                                    (n.unique.soc.partner.post, 
+                   qt75.degree.post = round(quantile(degree.post, 
                                                            0.75, na.rm = T), 2),
-                   avg.n.unique.soc.partner.post = round (mean
-                                                    (n.unique.soc.partner.post, 
+                   avg.degree.post = round(mean(degree.post, 
                                                            na.rm = T),2),
-                   stdev.n.unique.soc.partner.post = round (sd
-                                                    (n.unique.soc.partner.post, 
+                   stdev.degree.post = round(sd(degree.post, 
                                                              na.rm = T), 2),
-                   min.n.unique.soc.partner.post = round(min
-                                                    (n.unique.soc.partner.post,
+                   min.degree.post = round(min(degree.post,
                                                           na.rm = T), 2),
-                   max.n.unique.soc.partner.post = round(max
-                                                    (n.unique.soc.partner.post,
+                   max.degree.post = round(max(degree.post,
                                                           na.rm = T), 2), 
-                   # max number of social interactions with any one soc. partner
-                   n.max.cnt.soc.intx.post = sum(!is.na
-                                                (max.cnt.soc.intx.post)),
+              # max number of social interactions with any one soc. partner
                    med.max.cnt.soc.intx.post = round(median
                                                 (max.cnt.soc.intx.post,
                                                       na.rm = T), 2),
@@ -403,10 +371,10 @@
                    qt75.max.cnt.soc.intx.post = round(quantile
                                                   (max.cnt.soc.intx.post, 
                                                        0.75, na.rm = T), 2),
-                   avg.max.cnt.soc.intx.post = round (mean
+                   avg.max.cnt.soc.intx.post = round(mean
                                                   (max.cnt.soc.intx.post, 
                                                        na.rm = T),2),
-                   stdev.max.cnt.soc.intx.post = round (sd
+                   stdev.max.cnt.soc.intx.post = round(sd
                                                   (max.cnt.soc.intx.post, 
                                                          na.rm = T), 2),
                    min.max.cnt.soc.intx.post = round(min
@@ -415,30 +383,30 @@
                    max.max.cnt.soc.intx.post = round(max
                                                   (max.cnt.soc.intx.post,
                                                       na.rm = T), 2),
-                   # total number of social interactions with all soc. partners   
-                   n.tot.cnt.soc.intx.post = sum(!is.na
-                                                (tot.cnt.soc.intx.post)),
-                   med.tot.cnt.soc.intx.post = round(median
-                                                (tot.cnt.soc.intx.post,
+                # total number of social interactions with all soc. partners 
+                   med.strength.post = round(median(strength.post,
                                                       na.rm = T), 2),
-                   qt25.tot.cnt.soc.intx.post = round(quantile
-                                                (tot.cnt.soc.intx.post, 
+                   qt25.strength.post = round(quantile(strength.post, 
                                                        0.25, na.rm = T), 2),
-                   qt75.tot.cnt.soc.intx.post = round(quantile
-                                                (tot.cnt.soc.intx.post, 
+                   qt75.strength.post = round(quantile
+                                                (strength.post, 
                                                        0.75, na.rm = T), 2),
-                   avg.tot.cnt.soc.intx.post = round (mean
-                                                (tot.cnt.soc.intx.post, 
+                   avg.strength.post = round(mean(strength.post, 
                                                        na.rm = T),2),
-                   stdev.tot.cnt.soc.intx.post = round (sd
-                                                (tot.cnt.soc.intx.post, 
+                   stdev.strength.post = round(sd(strength.post, 
                                                          na.rm = T), 2),
-                   min.tot.cnt.soc.intx.post = round(min
-                                                (tot.cnt.soc.intx.post,
+                   min.strength.post = round(min(strength.post,
                                                       na.rm = T), 2),
-                   max.tot.cnt.soc.intx.post = round(max
-                                                (tot.cnt.soc.intx.post,
-                                                      na.rm = T), 2))
+                   max.strength.post = round(max(strength.post,
+                                                      na.rm = T), 2),
+              # total duration of social intx with all social partners
+                   med.tot.dur.post = round(median(tot.dur,  na.rm = T), 2),
+                   qt25.tot.dur.post = round(quantile(tot.dur, 0.25, na.rm = T), 2),
+                   qt75.tot.dur.post = round(quantile(tot.dur, 0.75, na.rm = T), 2),
+                   avg.tot.dur.post = round (mean(tot.dur, na.rm = T),2),
+                   stdev.tot.dur.post = round (sd(tot.dur, na.rm = T), 2),
+                   min.tot.dur.post = round(min (tot.dur, na.rm = T), 2),
+                   max.tot.dur.post = round(max(tot.dur, na.rm = T), 2))
       
     ## h) transpose the data frame for easier viewing
       univar_soc_intx_post <- as.data.frame(t(univar_soc_intx_post))
@@ -455,32 +423,22 @@
       univar_soc_intx_age_post <- chr15_attrib_post_df %>%
         group_by(Sex, Age.category) %>%
         # number of unique social partners
-        summarise (n.n.unique.soc.partner.post = sum(!is.na
-                                                  (n.unique.soc.partner.post)),
-                   med.n.unique.soc.partner.post = round(median
-                                                  (n.unique.soc.partner.post,
+        summarise (n.post = sum(!is.na(degree.post)),
+                   med.degree.post = round(median(degree.post,
                                                           na.rm = T), 2),
-                   qt25.n.unique.soc.partner.post = round(quantile
-                                                  (n.unique.soc.partner.post, 
+                   qt25.degree.post = round(quantile(degree.post, 
                                                            0.25, na.rm = T), 2),
-                   qt75.n.unique.soc.partner.post = round(quantile
-                                                  (n.unique.soc.partner.post, 
+                   qt75.degree.post = round(quantile(degree.post, 
                                                            0.75, na.rm = T), 2),
-                   avg.n.unique.soc.partner.post = round (mean
-                                                  (n.unique.soc.partner.post, 
+                   avg.degree.post = round(mean(degree.post, 
                                                            na.rm = T),2),
-                   stdev.n.unique.soc.partner.post = round (sd
-                                                  (n.unique.soc.partner.post, 
+                   stdev.degree.post = round(sd(degree.post, 
                                                              na.rm = T), 2),
-                   min.n.unique.soc.partner.post = round(min
-                                                  (n.unique.soc.partner.post,
+                   min.degree.post = round(min(degree.post,
                                                           na.rm = T), 2),
-                   max.n.unique.soc.partner.post = round(max
-                                                  (n.unique.soc.partner.post,
+                   max.degree.post = round(max(degree.post,
                                                           na.rm = T), 2), 
-                   # max number of social interactions with any one soc. partner
-                   n.max.cnt.soc.intx.post = sum(!is.na
-                                                (max.cnt.soc.intx.post)),
+              # max number of social interactions with any one soc. partner
                    med.max.cnt.soc.intx.post = round(median
                                                 (max.cnt.soc.intx.post,
                                                       na.rm = T), 2),
@@ -502,30 +460,29 @@
                    max.max.cnt.soc.intx.post = round(max
                                                 (max.cnt.soc.intx.post,
                                                       na.rm = T), 2),
-                   # total number of social interactions with all soc. partners   
-                   n.tot.cnt.soc.intx.post = sum(!is.na
-                                                (tot.cnt.soc.intx.post)),
-                   med.tot.cnt.soc.intx.post = round(median
-                                                (tot.cnt.soc.intx.post,
+              # total number of social interactions with all soc. partners  
+                   med.strength.post = round(median(strength.post,
                                                       na.rm = T), 2),
-                   qt25.tot.cnt.soc.intx.post = round(quantile
-                                                (tot.cnt.soc.intx.post, 
+                   qt25.strength.post = round(quantile(strength.post, 
                                                        0.25, na.rm = T), 2),
-                   qt75.tot.cnt.soc.intx.post = round(quantile
-                                                (tot.cnt.soc.intx.post, 
+                   qt75.strength.post = round(quantile(strength.post, 
                                                        0.75, na.rm = T), 2),
-                   avg.tot.cnt.soc.intx.post = round (mean
-                                                (tot.cnt.soc.intx.post, 
+                   avg.strength.post = round(mean(strength.post, 
                                                        na.rm = T),2),
-                   stdev.tot.cnt.soc.intx.post = round (sd
-                                                (tot.cnt.soc.intx.post, 
+                   stdev.strength.post = round(sd(strength.post, 
                                                          na.rm = T), 2),
-                   min.tot.cnt.soc.intx.post = round(min
-                                                (tot.cnt.soc.intx.post,
+                   min.strength.post = round(min(strength.post,
                                                       na.rm = T), 2),
-                   max.tot.cnt.soc.intx.post = round(max
-                                                (tot.cnt.soc.intx.post,
-                                                      na.rm = T), 2))
+                   max.strength.post = round(max(strength.post,
+                                                      na.rm = T), 2),
+                # total duration of social intx with all social partners
+                   med.tot.dur.post = round(median(tot.dur,  na.rm = T), 2),
+                   qt25.tot.dur.post = round(quantile(tot.dur, 0.25, na.rm = T), 2),
+                   qt75.tot.dur.post = round(quantile(tot.dur, 0.75, na.rm = T), 2),
+                   avg.tot.dur.post = round (mean(tot.dur, na.rm = T),2),
+                   stdev.tot.dur.post = round (sd(tot.dur, na.rm = T), 2),
+                   min.tot.dur.post = round(min (tot.dur, na.rm = T), 2),
+                   max.tot.dur.post = round(max(tot.dur, na.rm = T), 2))
       
     ## k) transpose the data frame for easier viewing
       univar_soc_intx_age_post <- as.data.frame(t
@@ -689,7 +646,6 @@
                                                 na.rm = T), 2),
                   max.attmpt.1.tot.pat = round(max(attmpt.1.tot.pat,
                                                 na.rm = T), 2))
-      
       
     ## c) Summarize nest attempt 2 male total paternity 
       univar_m_clutch_2_pat <- chr15_attrib_post_df %>%

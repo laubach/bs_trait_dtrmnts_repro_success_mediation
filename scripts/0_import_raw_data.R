@@ -1,7 +1,7 @@
 ################################################################################
-#############        The role of age and plumage traits as         #############  
-#############       determinants of reproductive success and       #############
-#############       the mediating role of social interactions      #############
+#############       Testing the mediating role of female-male      #############  
+#############    social interactions on the relationship between   #############
+#############             age and reproductive success.            #############
 #############                                                      #############
 #############                    0. Data Import                    #############
 #############                                                      #############
@@ -20,7 +20,7 @@
     # 2. Import social intx. data 
     # 3. Import attribute data
     # 4. Import repro. success data
-    # 5. Export data files
+    # 5. Export data 
   
 
 
@@ -123,7 +123,7 @@
       
   
 ###############################################################################
-##############                5. Export data files               ##############
+##############                  5. Export data                   ##############
 ###############################################################################
       
   ### 5.1 Export data to an RData file     

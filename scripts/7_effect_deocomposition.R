@@ -1,9 +1,9 @@
 ################################################################################
-#############        The role of age and plumage traits as         #############  
-#############       determinants of reproductive success and       #############
-#############       the mediating role of social interactions      #############
+#############       Testing the mediating role of female-male      #############  
+#############    social interactions on the relationship between   #############
+#############             age and reproductive success.            #############
 #############                                                      #############
-#############                 6. Mediation analysis                #############
+#############                7. Effect decomposition               #############
 #############                                                      #############
 #############                   By: Zach Laubach                   #############
 #############                 created: 29 Sept 2024                #############
@@ -12,31 +12,8 @@
 
 
 
-### PURPOSE: Run mediation models for node level assortative traits
-  ## Model Sets
-    # Model context 1: tot repro ~ original color & pre-manip soc intx.
-                    #  egg/1st clutch ~ original color & pre-manip soc intx.
-          # NOTE: for tot repro, male models should be subset to those NOT manip.
+### PURPOSE: Decompose the total effect into the direct and indirect effects
 
-    # Model context 2: replace clutch ~ post-manip color & post-manip soc intx.
-          # NOTE: for replace clutch, male models should be subset to those manip.
-
-    # Model context 3: replace clutch ~ post-manip color & pre-manip soc intx.
-          # NOTE: for replace clutch, male models should be subset to those manip.
-
-  ## Social network measures, for both pre and post manip., 
-    # Social intx metrics 1: all females and males
-    
-    # Social intx metrics 2: females and males among social mates
-
-    # Social intx metrics 3: females and males excluding social mates
-
-# Should social interactions be restricted to include only manipulated vs 
-# unmanipulated males when reproductive success is also limited to males that
-# are unmanipulated vs manipulated
-          
-
-  
   # Code Blocks
     # 1. Configure work space
     # 2. Load RData
@@ -79,15 +56,6 @@
       
       # load mediation
         library('mediation')
-      
-      # library('medflex')  
-        library('medflex')
-      
-      # load mediation for count based mediation analysis
-        #library('maczic')
-    
-      # load performance
-        library('performance')
       
       # library('broom')
         library('broom.mixed')
@@ -163,60 +131,61 @@
     ## e) Average causal mediation model summary
       summary(med.out.fem.age.pre.strength.fecund)
       
-    # ## f) sensitivity analysis for unmeasured confounder between mediator and 
-      # outcome
-      # sens.out <- medsens(med.out.fem.age.pre.strength.fecund, 
-      #                     rho.by = 0.1, effect.type = "indirect", 
-      #                     sims = 1000)
-      # summary(sens.out)
+    # # ## f) sensitivity analysis for unmeasured confounder between mediator and 
+    #   # outcome
+    #   sens.out <- medsens(med.out.fem.age.pre.strength.fecund,
+    #                       rho.by = 0.1, effect.type = 'indirect',
+    #                       sims = 1000)
+    #   summary(sens.out)
     
+      
 ##*** MODEL FITTING TEST using 'medflex' package
-    ## g) Expanded data and weights for female pre-manip strength by age
-      # 'expand the data' by estimating mediator for different levels of the 
-      # exposure to generate weights; implemented in medflex 
-      exp.wght.fem.age.strength.pre <- neWeight(fem.age.strength.pre)
-      weights(exp.wght.fem.age.strength.pre)
-      
-    # h) Ne_impute method; implemented in medflex using full model
-      # fem.age.pre.strength.tot.out 
-      exp.imp.fem.age.strength.pre <- neImpute(fem.age.pre.strength.tot.out)
-  
-
-    ## i) Natural effects model female pre-manip strength by age 
-      # calculate bootstrapped SE based resampling original data 
-      # with replacement (1000 iterations); implemented in medflex 
-      
-      # Weighting method   
-      ne.wght.fem.age.strength.pre.fecund <- neModel(total.fecundity ~ 
-                                      Age.category0 + Age.category1,
-                                      family = gaussian, 
-                                      expData = exp.wght.fem.age.strength.pre)
-      
-      summary(ne.wght.fem.age.strength.pre.fecund)
-      
-      # Imputation method  
-      ne.imp.fem.age.strength.pre.fecund <- neModel(total.fecundity ~ 
-                                      Age.category0 + Age.category1,
-                                      family = gaussian, 
-                                      expData = exp.imp.fem.age.strength.pre)
-      
-      summary(ne.imp.fem.age.strength.pre.fecund)
-
-    ## j) Decomposition of the natural effects based on weights method:
-      
-      # Weighting method   
-      eff.decomp.fem.age.strength.pre.fecund.wght <- 
-        neEffdecomp(ne.wght.fem.age.strength.pre.fecund)
-      
-      summary(eff.decomp.fem.age.strength.pre.fecund.wght)
-      confint(eff.decomp.fem.age.strength.pre.fecund.wght)
-      
-      # Imputation method  
-      eff.decomp.fem.age.strength.pre.fecund.imp <- 
-        neEffdecomp(ne.imp.fem.age.strength.pre.fecund)
-      
-      summary(eff.decomp.fem.age.strength.pre.fecund.imp)
-      confint(eff.decomp.fem.age.strength.pre.fecund.imp)
+    # ## g) Expanded data and weights for female pre-manip strength by age
+    #   # 'expand the data' by estimating mediator for different levels of the 
+    #   # exposure to generate weights; implemented in medflex 
+    #   exp.wght.fem.age.strength.pre <- neWeight(fem.age.strength.pre)
+    #   weights(exp.wght.fem.age.strength.pre)
+    #   
+    # # h) Ne_impute method; implemented in medflex using full model
+    #   # fem.age.pre.strength.tot.out 
+    #   exp.imp.fem.age.strength.pre <- neImpute(fem.age.pre.strength.tot.out)
+    # 
+    # 
+    # ## i) Natural effects model female pre-manip strength by age 
+    #   # calculate bootstrapped SE based resampling original data 
+    #   # with replacement (1000 iterations); implemented in medflex 
+    #   
+    #   # Weighting method   
+    #   ne.wght.fem.age.strength.pre.fecund <- neModel(total.fecundity ~ 
+    #                                   Age.category0 + Age.category1,
+    #                                   family = gaussian, 
+    #                                   expData = exp.wght.fem.age.strength.pre)
+    #   
+    #   summary(ne.wght.fem.age.strength.pre.fecund)
+    #   
+    #   # Imputation method  
+    #   ne.imp.fem.age.strength.pre.fecund <- neModel(total.fecundity ~ 
+    #                                   Age.category0 + Age.category1,
+    #                                   family = gaussian, 
+    #                                   expData = exp.imp.fem.age.strength.pre)
+    #   
+    #   summary(ne.imp.fem.age.strength.pre.fecund)
+    # 
+    # ## j) Decomposition of the natural effects based on weights method:
+    #   
+    #   # Weighting method   
+    #   eff.decomp.fem.age.strength.pre.fecund.wght <- 
+    #     neEffdecomp(ne.wght.fem.age.strength.pre.fecund)
+    #   
+    #   summary(eff.decomp.fem.age.strength.pre.fecund.wght)
+    #   confint(eff.decomp.fem.age.strength.pre.fecund.wght)
+    #   
+    #   # Imputation method  
+    #   eff.decomp.fem.age.strength.pre.fecund.imp <- 
+    #     neEffdecomp(ne.imp.fem.age.strength.pre.fecund)
+    #   
+    #   summary(eff.decomp.fem.age.strength.pre.fecund.imp)
+    #   confint(eff.decomp.fem.age.strength.pre.fecund.imp)
 
       
   ### 3.2 Female mediation model: female age plus post manip degree
@@ -303,9 +272,9 @@
                                     mediator = "strength.pre",
                                     boot = TRUE, sims = 1000) 
         
-    ## d) test for exposure*mediator intx
-        test.TMint(med.out.m.age.pre.strength.attmpt.1.tot.pat, 
-                   conf.level = .95)
+    # ## d) test for exposure*mediator intx
+    #     test.TMint(med.out.m.age.pre.strength.attmpt.1.tot.pat, 
+    #                conf.level = .95)
         
     ## e) Average causal mediation model summary
         summary(med.out.m.age.pre.strength.attmpt.1.tot.pat)
@@ -422,8 +391,7 @@
 
   ### 5.1 Set standard values for the tidy tibbles
     ## a) a list of effect types
-      `Effect type` <- c('ACME', 'ADE', 
-                         'Total Effect', 'Prop. Mediated')
+      `Effect type` <- c('indirect', 'direct', 'total', 'Prop. Mediated')
      
 
   ### 5.2 Tidy female effects decomposition: female age plus pre-manip strength
@@ -462,10 +430,9 @@
       tidy.fem.age.pre.strength.fecund <- 
         transform(tidy.fem.age.pre.strength.fecund, 
                   `Effect type` = factor(`Effect type`,
-                                 levels = c('Total Effect','ADE', 
-                                            'ACME', 
-                                            'Prop. Mediated'
-                                 )))  
+                                  levels = c('total','direct','indirect', 
+                                                    'Prop. Mediated'
+                                         )))
       
       
   ### 5.3 Tidy female effects decomposition: female age plus post manip degree
@@ -504,10 +471,9 @@
       tidy.fem.age.post.deg.fecund <- 
         transform(tidy.fem.age.post.deg.fecund, 
                   `Effect type` = factor(`Effect type`,
-                                levels = c('Total Effect','ADE', 
-                                           'ACME',
-                                           'Prop. Mediated'
-                                         )))  
+                                levels = c('total','direct','indirect', 
+                                                    'Prop. Mediated'
+                                         )))
       
       
   ### 5.4 Tidy male effects decomposition: male age plus pre-manip strength
@@ -547,10 +513,9 @@
       tidy.m.age.pre.strength.attmpt.1.tot.pat <- 
         transform(tidy.m.age.pre.strength.attmpt.1.tot.pat, 
                   `Effect type` = factor(`Effect type`,
-                                levels = c('Total Effect','ADE', 
-                                           'ACME',
-                                            'Prop. Mediated'
-                                         ))) 
+                                  levels = c('total','direct','indirect', 
+                                                    'Prop. Mediated'
+                                         )))
       
     
   ### 5.5 Tidy male effects decomposition: male age plus post manip degree
@@ -590,10 +555,9 @@
       tidy.m.age.post.deg.attmpt.2.tot.pat <- 
         transform(tidy.m.age.post.deg.attmpt.2.tot.pat, 
                   `Effect type` = factor(`Effect type`,
-                                levels = c('Total Effect','ADE', 
-                                           'ACME',
-                                            'Prop. Mediated'
-                                         ))) 
+                                  levels = c('total','direct','indirect', 
+                                                    'Prop. Mediated'
+                                         )))
       
       
   ### 5.6 Tidy male effects decomposition: male age plus pre-manip strength
@@ -633,10 +597,9 @@
       tidy.m.age.pre.strength.total.paternity <- 
         transform(tidy.m.age.pre.strength.total.paternity, 
                   `Effect type` = factor(`Effect type`,
-                                levels = c('Total Effect','ADE', 
-                                           'ACME',
-                                           'Prop. Mediated'
-                                         ))) 
+                                levels = c('total','direct','indirect', 
+                                                    'Prop. Mediated'
+                                         )))
       
       
       
@@ -861,15 +824,14 @@ and clutch 2 paternity model') +
                                          size=22, angle=0, 
                                          margin = margin(t = 0, r = 0, 
                                                          b = 0, l = 10)),
-              axis.title.y = element_blank(), # remove y axis title
+              #axis.title.y = element_blank(), # remove y axis title
               legend.title=element_blank(),
               legend.text=element_text(size=14),
               legend.position = 'none', #c(0.91, 0.94),
               legend.key = element_blank()) +
-        xlab(expression(italic('Effect Type')))
-      # +
-      # ylab(expression
-      #      (bold('Beta estimate and 95% CI'))) 
+        xlab(expression(italic('Effect Type')))+
+        ylab(expression
+             (bold('Beta estimate and 95% CI'))) 
       
     ## d) view plot
       print(m.age.post.deg.attmpt.2.tot.pat.plot)
@@ -892,7 +854,7 @@ and clutch 2 paternity model') +
                                     # , 'firebrick4'
         )) +
         #coord_flip() + # flip x and y axes
-        labs(title = 'Male age, post manipulation degree, 
+        labs(title = 'Male age, pre-manipulation strength, 
 and all clutches paternity model') +
         theme(plot.title = element_text(hjust = 0.5, size = 20)) + # center title
         theme(plot.subtitle = element_text(hjust = 0.5, size = 14)) + 
@@ -928,9 +890,9 @@ and all clutches paternity model') +
       print(m.age.strength.total.paternity.plot)
       
     ## g) make panel plot using patchwork
-      male.panel.plot <- (m.age.pre.strength.attmpt.1.tot.pat.plot | 
-                            m.age.post.deg.attmpt.2.tot.pat.plot / 
-                            m.age.strength.total.paternity.plot)
+      male.panel.plot <- (m.age.pre.strength.attmpt.1.tot.pat.plot / 
+                            (m.age.post.deg.attmpt.2.tot.pat.plot | 
+                            m.age.strength.total.paternity.plot))
       
     ## h) view panel plot
       male.panel.plot
@@ -942,5 +904,5 @@ and all clutches paternity model') +
              device = NULL,
              path = paste0(here(),'/output'), 
              scale = 1, width = 12,
-             height = 6,
+             height = 12,
              units = c('in'), dpi = 300, limitsize = TRUE)

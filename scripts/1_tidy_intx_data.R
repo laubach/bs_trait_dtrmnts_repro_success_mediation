@@ -1,13 +1,13 @@
 ################################################################################
-#############        The role of age and plumage traits as         #############  
-#############       determinants of reproductive success and       #############
-#############       the mediating role of social interactions      #############
+#############       Testing the mediating role of female-male      #############  
+#############    social interactions on the relationship between   #############
+#############             age and reproductive success.            #############
 #############                                                      #############
 #############              1. Tidy interaction data                #############
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 7 Aug 2024                   #############
-#############              last updated: 3 Dec 2024                #############
+#############             last updated: 23 Feb 2025                #############
 ################################################################################
 
 
@@ -18,12 +18,11 @@
   # Code Blocks
     # 1. Configure work space
     # 2. Import data 
-    # 3. Test data
+    # 3. Tidy data
     # 4. Select type of interactions
-    # 5. Quadratic Assignment Procedure
-    # 6. Finalize data selection
-    # 7. Build adjacency matrices 
-    # . Export data files
+    # 5. Finalize data selection
+    # 6. Build adjacency matrices 
+    # 7. Export data 
   
 
 
@@ -46,15 +45,6 @@
       
       # load lubridate package
         library ('lubridate')
-      
-      # load igraph package
-        library ('igraph')
-      
-      # load intergraph package: used in quadratic assignment procedure (QAP)
-        library ('intergraph')
-      
-      # load statnet package: used in QAP
-        library ('statnet')
  
       # load here package
         library ('here')
@@ -247,20 +237,20 @@
       
 #*****************************************************************************#
 #************************* Manual data cleaning ******************************#
-  # NOTE: Tag ID 116 is not in the attribute data, so remove it here.                
-    ## b) remove bird tag 116
-      chr15_intx_df <- chr15_intx_df %>%
-        filter(!(Tag1 == 116 | Tag2 == 116)) 
-      
-  # NOTE: Tag ID 57 does not pair until late Aug...fundamentally different
-      # than other birds, so remove it here.                
-    ## b) remove bird tag 57 from chr15_intx_df and chr15_attrib_df
-      chr15_intx_df <- chr15_intx_df %>%
-        filter(!(Tag1 == 57 | Tag2 == 57))   
-      
-      chr15_attrib_df <- chr15_attrib_df %>%
-        filter(!(Tag == 57))   
-      
+  # # NOTE: Tag ID 116 is not in the attribute data, so remove it here.                
+  #   ## b) remove bird tag 116
+  #     chr15_intx_df <- chr15_intx_df %>%
+  #       filter(!(Tag1 == 116 | Tag2 == 116)) 
+  #     
+  # # NOTE: Tag ID 57 does not pair until late Aug...fundamentally different
+  #     # than other birds, so remove it here.                
+  #   ## b) remove bird tag 57 from chr15_intx_df and chr15_attrib_df
+  #     chr15_intx_df <- chr15_intx_df %>%
+  #       filter(!(Tag1 == 57 | Tag2 == 57))   
+  #     
+  #     chr15_attrib_df <- chr15_attrib_df %>%
+  #       filter(!(Tag == 57))   
+  #     
 #*****************************************************************************#
 #*****************************************************************************#
     
@@ -350,10 +340,13 @@
     # NOTE: Check the earliest vs latest encounter net to ensure networks
       # are based on when all Tags working
       
-    ## b) remove bird 49 from both pre and post manip networks - 
+    ## a) remove female 49 from both pre and post manip networks - 
       # Tag worked from 6/13-6/14
       chr15_intx_pre_df <- chr15_intx_df %>%
         filter(!(Tag1 == 49 | Tag2 == 49)) 
+      
+   # NOTE: Tag 108 for female 2640-97169 never worked, so not included in 
+      # either pre or post network or attribute file
       
 #*****************************************************************************#
 #*****************************************************************************#     
@@ -381,276 +374,92 @@
     # NOTE: Check the earliest vs latest encounter net to ensure post manip
       # networks are based on when all Tags working
       
-    ## b) Remove birds 67, 40, 61, 51, 52, and 55 from post manip networks 
-      # Tag stopped on 6/19
+    ## b) Remove males 57, 67, 61, and 55 as well as females 40, 51, 52, 116 
+      # from post manip networks...Tags stopped on or before 6/19
       chr15_intx_post_df <- chr15_intx_pre_df %>%
-        filter(!(Tag1 == 67 | Tag2 == 67)) %>%
-        filter(!(Tag1 == 40 | Tag2 == 40)) %>%
+        filter(!(Tag1 == 55 | Tag2 == 55)) %>% # males
+        filter(!(Tag1 == 57 | Tag2 == 57)) %>%
         filter(!(Tag1 == 61 | Tag2 == 61)) %>%
+        filter(!(Tag1 == 67 | Tag2 == 67)) %>%
+        filter(!(Tag1 == 40 | Tag2 == 40)) %>% # females
         filter(!(Tag1 == 51 | Tag2 == 51)) %>%
         filter(!(Tag1 == 52 | Tag2 == 52)) %>%
-        filter(!(Tag1 == 55 | Tag2 == 55)) 
+        filter(!(Tag1 == 116 | Tag2 == 116)) 
       
+      
+  # NOTE: Tag Tag 56 for male 2600-27559, Tag 82 for male 1741-45779 (left site), 
+      # Tag 80 for female 2600-54704, which have no Tag data by 6/19, so
+      # they were removed by date filtering
+   
 #*****************************************************************************#
 #*****************************************************************************#      
    
          
       
 ###############################################################################
-##############         5. Quadratic Assignment Procedure         ##############
+##############            5. Finalize data selection             ##############
 ############################################################################### 
       
-  ### 5.1 Subset the pre-manip data by collection date and tag signal  
-      # and select variables of interest
-      # Specific day subsets used in QAP to compare network similarity  
-      
-# *** Build Day 1 subset CHR 2015 pre-manipulation by RSSI mean >= 20 ***
-    ## a) Day 1 subset CHR 2015 pre-manipulation by RSSI mean >= 20 
-      chr15_day1_intx_pre_df_20rssi <- chr15_intx_pre_df %>%
-        filter(day(Tstart) == 13 & month(Tstart) == 6) %>%
-        filter(RSSImean >= 20) %>%
-        select(Tag1, Tag2)
-      
-    ## b) Count CHR 2015 dyadic interactions >= 20 mean RSSI
-      chr15_day1_intx_pre_df_20rssi <- chr15_day1_intx_pre_df_20rssi %>%
-        # pmap_dfr(~list(...)[order(c(...))] %>% 
-        #            set_names(names(chr15_day1_intx_pre_df_20rssi))) %>%
-        group_by_all %>% 
-        count %>%
-        as.data.frame # needs to be a data frame and not tibble 
-      # counts should sum to 488
-      sum(chr15_day1_intx_pre_df_20rssi$n)
-      
-    ## c) extract ID list from Tag1 and Tag2
-      id_list_chr15_day1_intx_pre_df_20rssi <- as.character(sort(union(chr15_day1_intx_pre_df_20rssi$Tag1,
-                  chr15_day1_intx_pre_df_20rssi$Tag2), decreasing = F))
-      
-    ## d) create an empty matrix (n x n) to store intx counts
-      chr15_day1_intx_pre_20rssi_mat <- matrix(, nrow = length(id_list_chr15_day1_intx_pre_df_20rssi),
-                                          ncol = length(id_list_chr15_day1_intx_pre_df_20rssi))
-      
-    ## e) name matrix rows and columns
-      rownames(chr15_day1_intx_pre_20rssi_mat)<-id_list_chr15_day1_intx_pre_df_20rssi
-      colnames(chr15_day1_intx_pre_20rssi_mat)<-id_list_chr15_day1_intx_pre_df_20rssi
-      
-    ## f) populate empty matrix from chr15_intx_pre_df_20rssi
-      for(i in 1:length(chr15_day1_intx_pre_df_20rssi[,1])){
-        print(i)
-        chr15_day1_intx_pre_20rssi_mat[as.character(chr15_day1_intx_pre_df_20rssi[i,1]),
-                                  as.character(chr15_day1_intx_pre_df_20rssi[i,2])]<-chr15_day1_intx_pre_df_20rssi[i,3]
-        chr15_day1_intx_pre_20rssi_mat[as.character(chr15_day1_intx_pre_df_20rssi[i,2]),
-                                  as.character(chr15_day1_intx_pre_df_20rssi[i,1])]<-chr15_day1_intx_pre_df_20rssi[i,3]
-      }
-      
-    ## g) Replace NA with 0
-      chr15_day1_intx_pre_20rssi_mat[is.na(chr15_day1_intx_pre_20rssi_mat)] <- 0
-
-
-# *** Build Day 2 subset CHR 2015 pre-manipulation by RSSI mean >= 20 ***     
-    ## a) Day 2 subset CHR 2015 pre-manipulation by RSSI mean >= 20 
-      chr15_day2_intx_pre_df_20rssi <- chr15_intx_pre_df %>%
-        filter(day(Tstart) == 14 & month(Tstart) == 6) %>%
-        filter(RSSImean >= 20) %>%
-        select(Tag1, Tag2)
-      
-    ## b) Count CHR 2015 dyadic interactions >= 20 mean RSSI
-      chr15_day2_intx_pre_df_20rssi <- chr15_day2_intx_pre_df_20rssi %>%
-        # pmap_dfr(~list(...)[order(c(...))] %>% 
-        #            set_names(names(chr15_day2_intx_pre_df_20rssi))) %>%
-        group_by_all %>% 
-        count %>%
-        as.data.frame # needs to be a data frame and not tibble 
-      # counts should sum to 310
-      sum(chr15_day2_intx_pre_df_20rssi$n)
-      
-    ## c) extract ID list from Tag1 and Tag2
-      id_list_chr15_day2_intx_pre_df_20rssi <- as.character(sort(union(chr15_day2_intx_pre_df_20rssi$Tag1,
-                                                   chr15_day2_intx_pre_df_20rssi$Tag2), decreasing = F))
-      
-    ## d) create an empty matrix (n x n) to store intx counts
-      chr15_day2_intx_pre_20rssi_mat <- matrix(, nrow = length(id_list_chr15_day2_intx_pre_df_20rssi),
-                                               ncol = length(id_list_chr15_day2_intx_pre_df_20rssi))
-      
-    ## e) name matrix rows and columns
-      rownames(chr15_day2_intx_pre_20rssi_mat)<-id_list_chr15_day2_intx_pre_df_20rssi
-      colnames(chr15_day2_intx_pre_20rssi_mat)<-id_list_chr15_day2_intx_pre_df_20rssi
-      
-    ## f) populate empty matrix from chr15_intx_pre_df_20rssi
-      for(i in 1:length(chr15_day2_intx_pre_df_20rssi[,1])){
-        print(i)
-        chr15_day2_intx_pre_20rssi_mat[as.character(chr15_day2_intx_pre_df_20rssi[i,1]),
-                                       as.character(chr15_day2_intx_pre_df_20rssi[i,2])]<-chr15_day2_intx_pre_df_20rssi[i,3]
-        chr15_day2_intx_pre_20rssi_mat[as.character(chr15_day2_intx_pre_df_20rssi[i,2]),
-                                       as.character(chr15_day2_intx_pre_df_20rssi[i,1])]<-chr15_day2_intx_pre_df_20rssi[i,3]
-      }
-      
-    ## g) Replace NA with 0
-      chr15_day2_intx_pre_20rssi_mat[is.na(chr15_day2_intx_pre_20rssi_mat)] <- 0
-      
-# *** Build Day 3 subset CHR 2015 pre-manipulation by RSSI mean >= 20 ***      
-    ## a) Day 3 subset CHR 2015 pre-manipulation by RSSI mean >= 20 
-      chr15_day3_intx_pre_df_20rssi <- chr15_intx_pre_df %>%
-        filter(day(Tstart) == 15 & month(Tstart) == 6) %>%
-        filter(RSSImean >= 20) %>%
-        select(Tag1, Tag2)
-      
-    ## b) Count CHR 2015 dyadic interactions >= 20 mean RSSI
-      chr15_day3_intx_pre_df_20rssi <- chr15_day3_intx_pre_df_20rssi %>%
-        # pmap_dfr(~list(...)[order(c(...))] %>% 
-        #            set_names(names(chr15_day3_intx_pre_df_20rssi))) %>%
-        group_by_all %>% 
-        count %>%
-        as.data.frame # needs to be a data frame and not tibble 
-      # counts should sum to 279
-      sum(chr15_day3_intx_pre_df_20rssi$n)
-      
-    ## c) extract ID list from Tag1 and Tag2
-      id_list_chr15_day3_intx_pre_df_20rssi <- as.character(sort(union(chr15_day3_intx_pre_df_20rssi$Tag1,
-                                                                       chr15_day3_intx_pre_df_20rssi$Tag2), decreasing = F))
-      
-    ## d) create an empty matrix (n x n) to store intx counts
-      chr15_day3_intx_pre_20rssi_mat <- matrix(, nrow = length(id_list_chr15_day3_intx_pre_df_20rssi),
-                                               ncol = length(id_list_chr15_day3_intx_pre_df_20rssi))
-      
-    ## e) name matrix rows and columns
-      rownames(chr15_day3_intx_pre_20rssi_mat)<-id_list_chr15_day3_intx_pre_df_20rssi
-      colnames(chr15_day3_intx_pre_20rssi_mat)<-id_list_chr15_day3_intx_pre_df_20rssi
-      
-    ## f) populate empty matrix from chr15_intx_pre_df_20rssi
-      for(i in 1:length(chr15_day3_intx_pre_df_20rssi[,1])){
-        print(i)
-        chr15_day3_intx_pre_20rssi_mat[as.character(chr15_day3_intx_pre_df_20rssi[i,1]),
-                                       as.character(chr15_day3_intx_pre_df_20rssi[i,2])]<-chr15_day3_intx_pre_df_20rssi[i,3]
-        chr15_day3_intx_pre_20rssi_mat[as.character(chr15_day3_intx_pre_df_20rssi[i,2]),
-                                       as.character(chr15_day3_intx_pre_df_20rssi[i,1])]<-chr15_day3_intx_pre_df_20rssi[i,3]
-      }
-      
-      ## g) Replace NA with 0
-      chr15_day3_intx_pre_20rssi_mat[is.na(chr15_day3_intx_pre_20rssi_mat)] <- 0
-
-      
-  ### 5.2 Quadtratic Assignment Procedure for Pre-manipulation data   
-    # *** NOTE: specific day subsets used in QAP to compare network similarity ***   
-    ## a) create an igraph object from pre-manipulation adjacency matrices
-      day1_intx_pre_graph <- graph_from_adjacency_matrix(chr15_day1_intx_pre_20rssi_mat, 
-                                                        weighted=TRUE,
-                                                        mode = 'lower')
-      day2_intx_pre_graph <- graph_from_adjacency_matrix(chr15_day2_intx_pre_20rssi_mat, 
-                                                         weighted=TRUE,
-                                                         mode = 'lower')
-      day3_intx_pre_graph <- graph_from_adjacency_matrix(chr15_day3_intx_pre_20rssi_mat, 
-                                                         weighted=TRUE,
-                                                         mode = 'lower')
-      
-    ## b) create an statnet object from igraph object
-      day1_intx_pre_graph <- asNetwork(day1_intx_pre_graph)
-      day2_intx_pre_graph <- asNetwork(day2_intx_pre_graph)
-      day3_intx_pre_graph <- asNetwork(day3_intx_pre_graph)
-    
-    ## c) view the network
-      plot(day1_intx_pre_graph, displaylabels = T)
-      
-    ## d) Use statnet to get the day to day network correlation value 
-      # (r is returned)
-      gcor(day1_intx_pre_graph, day2_intx_pre_graph)
-      # r = 0.300
-      gcor(day1_intx_pre_graph, day3_intx_pre_graph)
-      # r = 0.005
-      gcor(day2_intx_pre_graph, day3_intx_pre_graph)
-      # r = 0.059
-      
-      # so only use day 1 and 2? - No, use all three days
-      
-    ## e) Test for significant difference 
-      pre_manip_cor <- qaptest(list(day1_intx_pre_graph, day2_intx_pre_graph), 
-                               gcor, g1=1, g2=2, reps=1000)
-      pre_manip_cor
-
-      ## Example QAP Test Results and interpretation
-      ## 
-      ## Estimated p-values:
-      ##  p(f(perm) >= f(d)): 0.002 
-      ##  p(f(perm) <= f(d)): 1
-    # The correlation is significant at the 0.05 alpha level. 
-      # We know this because less than 5% the permuted networks - or in this case,
-      # all of them - exhibited correlation coefficients that were either, 
-      # greater than, or less than that of the value we calculated for these networks.
-      
-      
-#** NOTE: Not ran because only two days and decided to not restrict data
-  # ### 5.3 Quadtratic Assignment Procedure for Pre-manipulation data  
-  #     # *** NOTE: specific day subsets used in QAP to compare network similarity ***           
-  #     ## a) Day 1 subset CHR 2015 post manipulation by RSSI mean >= 20 
-  #     chr15_day1_intx_post_df_20rssi <- chr15_intx_post_df %>%
-  #       filter(day(Tstart) == 19 & month(Tstart) == 6) %>%
-  #       filter(RSSImean >= 20) %>%
-  #       select(Tag1, Tag2)
-  #     
-  #     ## b) Day 2 subset CHR 2015 post manipulation by RSSI mean >= 20 
-  #     chr15_day2_intx_post_df_20rssi <- chr15_intx_post_df %>%
-  #       filter(day(Tstart) == 20 & month(Tstart) == 6) %>%
-  #       filter(RSSImean >= 20) %>%
-  #       select(Tag1, Tag2)
-
-      
-
-      
-###############################################################################
-##############            6. Finalize data selection             ##############
-############################################################################### 
-      
-  ### 6.1. Subset the pre-manip data by tag signal and select 
+  ### 5.1. Subset the pre-manip data by tag signal and select 
       # variables of interest
-      ## a) Subset CHR 2015 the data by pre-experiment dates: 6/13, 6/14, 6/15
+    ## a) Subset CHR 2015 the data by pre-experiment dates: 6/13, 6/14, 6/15
       chr15_intx_pre_df <- chr15_intx_pre_df %>%
         filter(day(Tstart) <= 15 & month(Tstart) == 6)
       
-      ## b) Subset CHR 2015 pre-manipulation by RSSI mean >= 20
+    ## b)  extract ID list from Tag1 and Tag2 of of IDs to include in 
+      # pre-manipulation adjacency matrix.
+      # Note this is done before RSSI filtering in case any IDs have no 
+      # interactions
+      id_list_chr15_intx_pre <- as.character(sort(union(chr15_intx_pre_df$Tag1, 
+                                                       chr15_intx_pre_df$Tag2), 
+                                                          decreasing = F))
+      
+    ## c) Subset CHR 2015 pre-manipulation by RSSI mean >= 20
       chr15_intx_pre_df_20rssi <- chr15_intx_pre_df %>%
         filter(RSSImean >= 20) %>%
         select(Tag1, Tag2)  
       
-      ## f) Subset CHR 2015 pre-manipulation by RSSI mean >= 25
-      chr15_intx_pre_df_25rssi <- chr15_intx_pre_df %>%
-        filter(RSSImean >= 25) %>%
-        select(Tag1, Tag2)
-      
-      ## g) Subset CHR 2015 pre-manipulation by RSSI mean >= 30
-      chr15_intx_pre_df_30rssi <- chr15_intx_pre_df %>%
-        filter(RSSImean >= 30) %>%
-        select(Tag1, Tag2)
+    ## d) create a second data frame that contains the duration of intx at
+        # 20RSSI
+      chr15_dur_pre_df_20rssi <- chr15_intx_pre_df %>%
+        filter(RSSImean >= 20) %>%
+        select(Tag1, Tag2, duration)  
       
   
-  ### 6.2  Subset the post-manip data by tag signal and select 
+  ### 5.2  Subset the post-manip data by tag signal and select 
       # variables of interest    
     ## a) Subset CHR 2015 the data by post-experiment dates: 6/19 - 6/20
       chr15_intx_post_df <- chr15_intx_post_df %>%
         filter(day(Tstart) == 19 | day(Tstart) == 20 & 
                  month(Tstart) == 6)
       
-    ## b) Subset CHR 2015 post-manipulation by RSSI mean >= 20
+    ## b)  extract ID list from Tag1 and Tag2 of of IDs to include in 
+      # post manipulation adjacency matrix.
+      # Note this is done before RSSI filtering in case any IDs have no 
+      # interactions
+      id_list_chr15_intx_post <- as.character(sort(union(chr15_intx_post_df$Tag1, 
+                                                         chr15_intx_post_df$Tag2), 
+                                                  decreasing = F))
+      
+    ## c) Subset CHR 2015 post-manipulation by RSSI mean >= 20
       chr15_intx_post_df_20rssi <- chr15_intx_post_df %>%
         filter(RSSImean >= 20) %>%
         select(Tag1, Tag2)
       
+    ## d) create a second data frame that contains the duration of intx at
+      # 20RSSI
+      chr15_dur_post_df_20rssi <- chr15_intx_post_df %>%
+        filter(RSSImean >= 20) %>%
+        select(Tag1, Tag2, duration)  
+      
 
-    ## c) Subset CHR 2015 post-manipulation by RSSI mean >= 25
-      chr15_intx_post_df_25rssi <- chr15_intx_post_df %>%
-        filter(RSSImean >= 25) %>%
-        select(Tag1, Tag2)
-      
-    ## d) Subset CHR 2015 post-manipulation by RSSI mean >= 30
-      chr15_intx_post_df_30rssi <- chr15_intx_post_df %>%
-        filter(RSSImean >= 30) %>%
-        select(Tag1, Tag2)
-      
       
       
 ###############################################################################
-##############            7. Build adjacency matrices            ##############
+##############            6. Build adjacency matrices            ##############
 ###############################################################################          
 
-  ### 7.1 Build CHR 2015 adjacency matrix for >= 20 mean RSSI pre-manipulation
+  ### 6.1 Build CHR 2015 adjacency matrix for >= 20 mean RSSI pre-manipulation
     ## a) Count CHR 2015 dyadic interactions >= 20 mean RSSI
       chr15_intx_pre_df_20rssi <- chr15_intx_pre_df_20rssi %>%
         # pmap_dfr(~list(...)[order(c(...))] %>% 
@@ -658,103 +467,46 @@
         group_by_all %>% 
         count %>%
         as.data.frame # needs to be a data frame and not tibble 
-      # counts should sum to 1224
+      # counts should sum to 1077
       sum(chr15_intx_pre_df_20rssi$n)
       
-    ## b) extract ID list from Tag1 and Tag2
-      id_list_chr15_intx_pre_20rssi <- as.character(sort(union(chr15_intx_pre_df_20rssi$Tag1, 
-                                                      chr15_intx_pre_df_20rssi$Tag2), 
-                                              decreasing = F))
-    ## c) create an empty matrix (n x n) to store intx counts
-      chr15_intx_pre_20rssi_mat <- matrix(, nrow = length(id_list_chr15_intx_pre_20rssi),
-                                   ncol = length(id_list_chr15_intx_pre_20rssi))
-      
-    ## d) name matrix rows and columns
-      rownames(chr15_intx_pre_20rssi_mat)<-id_list_chr15_intx_pre_20rssi
-      colnames(chr15_intx_pre_20rssi_mat)<-id_list_chr15_intx_pre_20rssi
+    ## b) summarize the total duration each pair spends together
+      chr15_dur_pre_df_20rssi <- chr15_dur_pre_df_20rssi %>%
+        # pmap_dfr(~list(...)[order(c(...))] %>% 
+        #            set_names(names(chr15_intx_pre_df_20rssi))) %>%
+        group_by(across(all_of(c('Tag1', 'Tag2')))) %>% 
+        summarise(tot.dur = sum(duration)) %>%
+        as.data.frame # needs to be a data frame and not tibble 
+
+    ## c) left join tot.dur to the intx data frame  
+      chr15_intx_pre_df_20rssi <- chr15_intx_pre_df_20rssi %>%
+        left_join(select(chr15_dur_pre_df_20rssi, c(Tag1, Tag2, tot.dur)),
+                  by = c('Tag1' = 'Tag1', 'Tag2' = 'Tag2'), 
+                  copy = F) 
     
-    ## e) populate empty matrix from chr15_intx_pre_df_20rssi
+    ## d) create an empty matrix (n x n) to store intx counts using ID list
+     # created in 5.1 b)
+      chr15_intx_pre_20rssi_mat <- matrix(, nrow = length(id_list_chr15_intx_pre),
+                                   ncol = length(id_list_chr15_intx_pre))
+      
+    ## e) name matrix rows and columns
+      rownames(chr15_intx_pre_20rssi_mat)<-id_list_chr15_intx_pre
+      colnames(chr15_intx_pre_20rssi_mat)<-id_list_chr15_intx_pre
+    
+    ## f) populate empty matrix from chr15_intx_pre_df_20rssi
       for(i in 1:length(chr15_intx_pre_df_20rssi[,1])){
         print(i)
         chr15_intx_pre_20rssi_mat[as.character(chr15_intx_pre_df_20rssi[i,1]),
                          as.character(chr15_intx_pre_df_20rssi[i,2])]<-chr15_intx_pre_df_20rssi[i,3]
         chr15_intx_pre_20rssi_mat[as.character(chr15_intx_pre_df_20rssi[i,2]),
                          as.character(chr15_intx_pre_df_20rssi[i,1])]<-chr15_intx_pre_df_20rssi[i,3]
-          }
+      }
       
-    ## h) Replace NA with 0
+    ## g) Replace NA with 0
       chr15_intx_pre_20rssi_mat[is.na(chr15_intx_pre_20rssi_mat)] <- 0
  
-      
-  ### 7.2 Build CHR 2015 adjacency matrix for >= 25 mean RSSI pre-manipulation
-    ## a) Count CHR 2015 dyadic interactions >= 25 mean RSSI
-      chr15_intx_pre_df_25rssi <- chr15_intx_pre_df_25rssi %>%
-        group_by_all %>% 
-        count %>%
-        as.data.frame # needs to be a data frame and not tibble 
-      # counts should sum to 956
-      #sum(chr15_intx_pre_df_25rssi$n)
-      
-    ## b) extract ID list from Tag1 and Tag2
-      id_list_chr15_intx_pre_25rssi <- as.character(sort(union(chr15_intx_pre_df_25rssi$Tag1, 
-                                                      chr15_intx_pre_df_25rssi$Tag2), 
-                                                decreasing = F))
-    ## c) create an empty matrix (n x n) to store intx counts
-      chr15_intx_pre_25rssi_mat <- matrix(, nrow = length(id_list_chr15_intx_pre_25rssi),
-                                 ncol = length(id_list_chr15_intx_pre_25rssi))
-      
-    ## d) name matrix rows and columns
-      rownames(chr15_intx_pre_25rssi_mat)<-id_list_chr15_intx_pre_25rssi
-      colnames(chr15_intx_pre_25rssi_mat)<-id_list_chr15_intx_pre_25rssi
-      
-    ## e) populate empty matrix from chr15_intx_pre_df_25rssi
-      for(i in 1:length(chr15_intx_pre_df_25rssi[,1])){
-        print(i)
-        chr15_intx_pre_25rssi_mat[as.character(chr15_intx_pre_df_25rssi[i,1]),
-                         as.character(chr15_intx_pre_df_25rssi[i,2])]<-chr15_intx_pre_df_25rssi[i,3]
-        chr15_intx_pre_25rssi_mat[as.character(chr15_intx_pre_df_25rssi[i,2]),
-                         as.character(chr15_intx_pre_df_25rssi[i,1])]<-chr15_intx_pre_df_25rssi[i,3]
-      }
-      
-    ## h) Replace NA with 0
-      chr15_intx_pre_25rssi_mat[is.na(chr15_intx_pre_25rssi_mat)] <- 0   
-      
-    
-  ### 7.3 Build CHR 2015 adjacency matrix for >= 30 mean RSSI pre-manipulation
-    ## a) Count CHR 2015 dyadic interactions >= 30 mean RSSI
-      chr15_intx_pre_df_30rssi <- chr15_intx_pre_df_30rssi %>%
-        group_by_all %>% 
-        count %>%
-        as.data.frame # needs to be a data frame and not tibble 
-      # counts should sum to 700
-      #sum(chr15_intx_pre_df_30rssi$n)
-      
-    ## b) extract ID list from Tag1 and Tag2
-      id_list_chr15_intx_pre_30rssi <- as.character(sort(union(chr15_intx_pre_df_30rssi$Tag1, 
-                                                      chr15_intx_pre_df_30rssi$Tag2), 
-                                                decreasing = F))
-    ## c) create an empty matrix (n x n) to store intx counts
-      chr15_intx_pre_30rssi_mat <- matrix(, nrow = length(id_list_chr15_intx_pre_30rssi),
-                                 ncol = length(id_list_chr15_intx_pre_30rssi))
-      
-    ## d) name matrix rows and columns
-      rownames(chr15_intx_pre_30rssi_mat)<-id_list_chr15_intx_pre_30rssi
-      colnames(chr15_intx_pre_30rssi_mat)<-id_list_chr15_intx_pre_30rssi
-      
-    ## e) populate empty matrix from chr15_intx_pre_df_30rssi
-      for(i in 1:length(chr15_intx_pre_df_30rssi[,1])){
-        print(i)
-        chr15_intx_pre_30rssi_mat[as.character(chr15_intx_pre_df_30rssi[i,1]),
-                         as.character(chr15_intx_pre_df_30rssi[i,2])]<-chr15_intx_pre_df_30rssi[i,3]
-        chr15_intx_pre_30rssi_mat[as.character(chr15_intx_pre_df_30rssi[i,2]),
-                         as.character(chr15_intx_pre_df_30rssi[i,1])]<-chr15_intx_pre_df_30rssi[i,3]
-      }
-      
-    ## h) Replace NA with 0
-      chr15_intx_pre_30rssi_mat[is.na(chr15_intx_pre_30rssi_mat)] <- 0   
-      
-      
-  ### 7.4 Build CHR 2015 adjacency matrix for >= 20 mean RSSI post manipulation
+
+  ### 6.2 Build CHR 2015 adjacency matrix for >= 20 mean RSSI post manipulation
     ## a) Count CHR 2015 dyadic interactions >= 20 mean RSSI
       chr15_intx_post_df_20rssi <- chr15_intx_post_df_20rssi %>%
         # pmap_dfr(~list(...)[order(c(...))] %>% 
@@ -762,22 +514,32 @@
         group_by_all %>% 
         count %>%
         as.data.frame # needs to be a data frame and not tibble 
-      # counts should sum to 1224
+      # counts should sum to 405
       sum(chr15_intx_post_df_20rssi$n)
       
-    ## b) extract ID list from Tag1 and Tag2
-      id_list_chr15_intx_post_20rssi <- as.character(sort(union(chr15_intx_post_df_20rssi$Tag1, 
-                                                               chr15_intx_post_df_20rssi$Tag2), 
-                                                         decreasing = F))
-    ## c) create an empty matrix (n x n) to store intx counts
-      chr15_intx_post_20rssi_mat <- matrix(, nrow = length(id_list_chr15_intx_post_20rssi),
-                                          ncol = length(id_list_chr15_intx_post_20rssi))
+    ## b) summarize the total duration each pair spends together
+      chr15_dur_post_df_20rssi <- chr15_dur_post_df_20rssi %>%
+        # pmap_dfr(~list(...)[order(c(...))] %>% 
+        #            set_names(names(chr15_intx_pre_df_20rssi))) %>%
+        group_by(across(all_of(c('Tag1', 'Tag2')))) %>% 
+        summarise(tot.dur = sum(duration)) %>%
+        as.data.frame # needs to be a data frame and not tibble 
       
-    ## d) name matrix rows and columns
-      rownames(chr15_intx_post_20rssi_mat)<-id_list_chr15_intx_post_20rssi
-      colnames(chr15_intx_post_20rssi_mat)<-id_list_chr15_intx_post_20rssi
+    ## c) left join tot.dur to the intx data frame
+      chr15_intx_post_df_20rssi <- chr15_intx_post_df_20rssi %>%
+        left_join(select(chr15_dur_post_df_20rssi, c(Tag1, Tag2, tot.dur)),
+                  by = c('Tag1' = 'Tag1', 'Tag2' = 'Tag2'), 
+                  copy = F) 
       
-    ## e) populate empty matrix from chr15_intx_post_df_20rssi
+    ## d) create an empty matrix (n x n) to store intx counts
+      chr15_intx_post_20rssi_mat <- matrix(, nrow = length(id_list_chr15_intx_post),
+                                          ncol = length(id_list_chr15_intx_post))
+      
+    ## e) name matrix rows and columns
+      rownames(chr15_intx_post_20rssi_mat)<-id_list_chr15_intx_post
+      colnames(chr15_intx_post_20rssi_mat)<-id_list_chr15_intx_post
+      
+    ## f) populate empty matrix from chr15_intx_post_df_20rssi
       for(i in 1:length(chr15_intx_post_df_20rssi[,1])){
         print(i)
         chr15_intx_post_20rssi_mat[as.character(chr15_intx_post_df_20rssi[i,1]),
@@ -786,85 +548,16 @@
                                   as.character(chr15_intx_post_df_20rssi[i,1])]<-chr15_intx_post_df_20rssi[i,3]
       }
       
-    ## h) Replace NA with 0
+    ## g) Replace NA with 0
       chr15_intx_post_20rssi_mat[is.na(chr15_intx_post_20rssi_mat)] <- 0
       
-      
-  ### 7.5 Build CHR 2015 adjacency matrix for >= 25 mean RSSI post manipulation
-    ## a) Count CHR 2015 dyadic interactions >= 25 mean RSSI
-      chr15_intx_post_df_25rssi <- chr15_intx_post_df_25rssi %>%
-        group_by_all %>% 
-        count %>%
-        as.data.frame # needs to be a data frame and not tibble 
-      # counts should sum to 956
-      #sum(chr15_intx_post_df_25rssi$n)
-      
-    ## b) extract ID list from Tag1 and Tag2
-      id_list_chr15_intx_post_25rssi <- as.character(sort(union(chr15_intx_post_df_25rssi$Tag1, 
-                                                               chr15_intx_post_df_25rssi$Tag2), 
-                                                         decreasing = F))
-    ## c) create an empty matrix (n x n) to store intx counts
-      chr15_intx_post_25rssi_mat <- matrix(, nrow = length(id_list_chr15_intx_post_25rssi),
-                                          ncol = length(id_list_chr15_intx_post_25rssi))
-      
-    ## d) name matrix rows and columns
-      rownames(chr15_intx_post_25rssi_mat)<-id_list_chr15_intx_post_25rssi
-      colnames(chr15_intx_post_25rssi_mat)<-id_list_chr15_intx_post_25rssi
-      
-    ## e) populate empty matrix from chr15_intx_post_df_25rssi
-      for(i in 1:length(chr15_intx_post_df_25rssi[,1])){
-        print(i)
-        chr15_intx_post_25rssi_mat[as.character(chr15_intx_post_df_25rssi[i,1]),
-                                  as.character(chr15_intx_post_df_25rssi[i,2])]<-chr15_intx_post_df_25rssi[i,3]
-        chr15_intx_post_25rssi_mat[as.character(chr15_intx_post_df_25rssi[i,2]),
-                                  as.character(chr15_intx_post_df_25rssi[i,1])]<-chr15_intx_post_df_25rssi[i,3]
-      }
-      
-    ## h) Replace NA with 0
-      chr15_intx_post_25rssi_mat[is.na(chr15_intx_post_25rssi_mat)] <- 0   
-      
-      
-  ### 7.6 Build CHR 2015 adjacency matrix for >= 30 mean RSSI post manipulation
-    ## a) Count CHR 2015 dyadic interactions >= 30 mean RSSI
-      chr15_intx_post_df_30rssi <- chr15_intx_post_df_30rssi %>%
-        group_by_all %>% 
-        count %>%
-        as.data.frame # needs to be a data frame and not tibble 
-      # counts should sum to 700
-      #sum(chr15_intx_post_df_30rssi$n)
-      
-    ## b) extract ID list from Tag1 and Tag2
-      id_list_chr15_intx_post_30rssi <- as.character(sort(union(chr15_intx_post_df_30rssi$Tag1, 
-                                                               chr15_intx_post_df_30rssi$Tag2), 
-                                                         decreasing = F))
-    ## c) create an empty matrix (n x n) to store intx counts
-      chr15_intx_post_30rssi_mat <- matrix(, nrow = length(id_list_chr15_intx_post_30rssi),
-                                          ncol = length(id_list_chr15_intx_post_30rssi))
-      
-    ## d) name matrix rows and columns
-      rownames(chr15_intx_post_30rssi_mat)<-id_list_chr15_intx_post_30rssi
-      colnames(chr15_intx_post_30rssi_mat)<-id_list_chr15_intx_post_30rssi
-      
-    ## e) populate empty matrix from chr15_intx_post_df_30rssi
-      for(i in 1:length(chr15_intx_post_df_30rssi[,1])){
-        print(i)
-        chr15_intx_post_30rssi_mat[as.character(chr15_intx_post_df_30rssi[i,1]),
-                                  as.character(chr15_intx_post_df_30rssi[i,2])]<-chr15_intx_post_df_30rssi[i,3]
-        chr15_intx_post_30rssi_mat[as.character(chr15_intx_post_df_30rssi[i,2]),
-                                  as.character(chr15_intx_post_df_30rssi[i,1])]<-chr15_intx_post_df_30rssi[i,3]
-      }
-      
-    ## h) Replace NA with 0
-      chr15_intx_post_30rssi_mat[is.na(chr15_intx_post_30rssi_mat)] <- 0 
-      
-      
-      
+
 
 ###############################################################################
-##############                8. Export data files               ##############
+##############                  7. Export data                   ##############
 ###############################################################################
       
-  ### 8.1 Export data to an RData file 
+  ### 7.1 Export data to an RData file 
       # Files are saved in the 'data' folder in the working directory as an
       # RData file.
       
@@ -879,33 +572,13 @@
            list = c('chr15_intx_pre_df', 'chr15_intx_pre_df_20rssi', 
                     'chr15_intx_pre_20rssi_mat'))
       
-    ## c) Save and export data for CHR 2015 pre-manipulation >= 25 RSSI
-      save(file = here('data/4_chr15_intx_pre_exp_25rssi.RData'), 
-           list = c('chr15_intx_pre_df', 'chr15_intx_pre_df_25rssi', 
-                    'chr15_intx_pre_25rssi_mat'))
-      
-    ## d) Save and export data for CHR 2015 post-manipulation >= 30 RSSI
-      save(file = here('data/4_chr15_intx_post_exp_30rssi.RData'), 
-           list = c('chr15_intx_post_df', 'chr15_intx_post_df_30rssi', 
-                    'chr15_intx_post_30rssi_mat'))
-      
-    ## e) Save and export data for CHR 2015 post-manipulation >= 20 RSSI
+    ## c) Save and export data for CHR 2015 post-manipulation >= 20 RSSI
       save(file = here('data/4_chr15_intx_post_exp_20rssi.RData'), 
            list = c('chr15_intx_post_df', 'chr15_intx_post_df_20rssi', 
                     'chr15_intx_post_20rssi_mat'))
       
-    ## f) Save and export data for CHR 2015 post-manipulation >= 25 RSSI
-      save(file = here('data/4_chr15_intx_post_exp_25rssi.RData'), 
-           list = c('chr15_intx_post_df', 'chr15_intx_post_df_25rssi', 
-                    'chr15_intx_post_25rssi_mat'))
-      
-    ## g) Save and export data for CHR 2015 post-manipulation >= 30 RSSI
-      save(file = here('data/4_chr15_intx_post_exp_30rssi.RData'), 
-           list = c('chr15_intx_post_df', 'chr15_intx_post_df_30rssi', 
-                    'chr15_intx_post_30rssi_mat'))
-      
-      
-  ### 8.2 Export adjacency matrices to .csv files 
+   
+  ### 7.2 Export adjacency matrices to .csv files 
       # Files are saved in the 'data' folder in the working directory as an
       # RData file.
       
@@ -914,30 +587,11 @@
                 file = here('data/4_chr15_intx_pre_exp_20rssi.csv'), 
                 row.names = T)
       
-    ## b) Save and export data for CHR 2015 pre-manipulation >= 25 RSSI
-      write.csv(chr15_intx_pre_25rssi_mat, 
-                file = here('data/4_chr15_intx_pre_exp_25rssi.csv'), 
-                row.names = T)
-      
-    ## c) Save and export data for CHR 2015 pre-manipulation >= 30 RSSI
-      write.csv(chr15_intx_pre_30rssi_mat, 
-                file = here('data/4_chr15_intx_pre_exp_30rssi.csv'), 
-                row.names = T)
-      
-    ## d) Save and export data for CHR 2015 post-manipulation >= 20 RSSI
+    ## b) Save and export data for CHR 2015 post-manipulation >= 20 RSSI
       write.csv(chr15_intx_post_20rssi_mat, 
                 file = here('data/4_chr15_intx_post_exp_20rssi.csv'), 
                 row.names = T)
       
-    ## e) Save and export data for CHR 2015 post-manipulation >= 25 RSSI
-      write.csv(chr15_intx_post_25rssi_mat, 
-                file = here('data/4_chr15_intx_post_exp_25rssi.csv'), 
-                row.names = T)
-      
-    ## f) Save and export data for CHR 2015 post-manipulation >= 30 RSSI
-      write.csv(chr15_intx_post_30rssi_mat, 
-                file = here('data/4_chr15_intx_post_exp_30rssi.csv'), 
-                row.names = T)
-      
+
       
     
