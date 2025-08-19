@@ -17,10 +17,10 @@
   # Code Blocks
     # 1. Configure work space
     # 2. Load RData
-    # 3. Female models effects decomposition
-    # 4. Male models effects decomposition
-    # 5. Tidy effects decomposition
-    # 6. Graph effects decomposition
+    # 3. Female effect decomposition models
+    # 4. Male effect decomposition models
+    # 5. Tidy effect decomposition
+    # 6. Graph effect decomposition
 
     
 
@@ -82,92 +82,97 @@
   
   ### 2.1 Load RData
     ## a) Load RData mediation data
-      load(here('data/7_chr15_effect_decomp_data.RData'))
+      load(here('data/7_chr_effect_decomp_data.RData'))
     
     ## b) Load RData mediation models
-      load(here('data/7_chr15_effect_decomp_mods.RData'))
+      load(here('data/7_chr_effect_decomp_mods.RData'))
     
       
 
 ###############################################################################
-##############      3. Female models effects decomposition       ##############
+##############       3. Female effect decomposition models       ##############
 ###############################################################################  
-
+      # age --> strength(fxm) --> repro
+      # TS --> strength(fxm) --> repro - age adjusted
+      # TS --> degree(fxm)  --> repro - age adjusted
       
-  ### 3.1 Female mediation model: female age plus pre-manip strength
+  ### 3.1 Female mediation model: female age + pre-manip strength
       # with total fecundity.
       # exposure = age
-      # mediators = pre-manip strength
+      # mediators = fxm strength
       # outcomes = total fecundity (females)
       
       # Estimate the average causal mediation effects (ACME) and the 
       # average direct effect (ADE); 'mediation' package
-      # mediation model = fem.age.strength.pre;see section 4.1
-      # outcome model = fem.age.pre.strength.tot.fecund
+      # mediation model = f_fxm_age_strength; Script 6, section 5.1
+      # outcome model = f_fxm_age_strength_fecund
       
-    ## a) fit full model
-      fem.age.pre.strength.tot.fecund <- glm(total.fecundity ~ 
-                                          Age.category + strength.pre,
+    ## a) Female Age - Strength fxm full model
+      f_fxm_age_strength_fecund <- lm(total.fecundity ~ 
+                                          Age.category + strength.fxm,
                                           # test for intx
-                                          #Age.category * strength.pre,
-                                          family = 'gaussian',
-                                          data = subset(chr15_attrib_pre_df,
+                                          #Age.category * strength.fxm,
+                                          #family = 'gaussian',
+                                          data = subset(chr15_attrib_df,
                                                 Sex == 'f' &
-                                                !is.na(strength.pre) &
+                                                !is.na(Age.category) &
+                                                !is.na(strength.fxm) &
                                                 !is.na(total.fecundity)))
     ## b) full model summary
-      summary(fem.age.pre.strength.tot.fecund)
+      summary(f_fxm_age_strength_fecund)
       
     ## c) Estimate average causal mediation effects
-      med.out.fem.age.pre.strength.fecund <- mediate(fem.age.strength.pre, 
-                                                fem.age.pre.strength.tot.fecund, 
-                                                treat = "Age.category", 
-                                                mediator = "strength.pre",
-                                                boot = TRUE, sims = 1000) 
+      med_out_f_age_strength_fecund <- mediate(f_fxm_age_strength, 
+                                        f_fxm_age_strength_fecund, 
+                                      treat = "Age.category", 
+                                      mediator = "strength.fxm",
+                                      robustSE = TRUE, sims = 1000) 
+      
     ## d) test for exposure*mediator intx
-      # test.TMint(med.out.fem.age.pre.strength.fecund, 
+      # test.TMint(med_out_f_age_strength_fecund,
       #            conf.level = .95)
       
     ## e) Average causal mediation model summary
-      summary(med.out.fem.age.pre.strength.fecund)
+      summary(med_out_f_age_strength_fecund)
       
-    # # ## f) sensitivity analysis for unmeasured confounder between mediator and 
-    #   # outcome
-    #   sens.out <- medsens(med.out.fem.age.pre.strength.fecund,
-    #                       rho.by = 0.1, effect.type = 'indirect',
-    #                       sims = 1000)
-    #   summary(sens.out)
+    ## f) sensitivity analysis for unmeasured confounder between mediator and 
+       # outcome
+      sens_f_age_strength_fecund <- medsens(med_out_f_age_strength_fecund,
+                          rho.by = 0.1, effect.type = 'indirect',
+                          sims = 1000)
+      summary(sens_f_age_strength_fecund)
+      plot(sens_f_age_strength_fecund)
     
       
 ##*** MODEL FITTING TEST using 'medflex' package
     # ## g) Expanded data and weights for female pre-manip strength by age
     #   # 'expand the data' by estimating mediator for different levels of the 
     #   # exposure to generate weights; implemented in medflex 
-    #   exp.wght.fem.age.strength.pre <- neWeight(fem.age.strength.pre)
-    #   weights(exp.wght.fem.age.strength.pre)
+    #   exp_wght_f_age_strength <- neWeight(f_fxm_age_strength)
+    #   weights(exp_wght_f_age_strength)
     #   
     # # h) Ne_impute method; implemented in medflex using full model
-    #   # fem.age.pre.strength.tot.out 
-    #   exp.imp.fem.age.strength.pre <- neImpute(fem.age.pre.strength.tot.out)
+    #   # f_fxm_age_strength_fecund 
+    #   exp_imp_f_age_strength_fecund <- neImpute(f_fxm_age_strength_fecund)
     # 
     # 
-    # ## i) Natural effects model female pre-manip strength by age 
+    # ## i) Natural effects model female strength by age 
     #   # calculate bootstrapped SE based resampling original data 
     #   # with replacement (1000 iterations); implemented in medflex 
     #   
     #   # Weighting method   
-    #   ne.wght.fem.age.strength.pre.fecund <- neModel(total.fecundity ~ 
+    #   ne_wght_f_age_strength_fecund <- neModel(total.fecundity ~ 
     #                                   Age.category0 + Age.category1,
     #                                   family = gaussian, 
-    #                                   expData = exp.wght.fem.age.strength.pre)
+    #                                   expData = exp_wght_f_age_strength)
     #   
-    #   summary(ne.wght.fem.age.strength.pre.fecund)
+    #   summary(ne_wght_f_age_strength_fecund)
     #   
     #   # Imputation method  
-    #   ne.imp.fem.age.strength.pre.fecund <- neModel(total.fecundity ~ 
+    #   ne_imp_f_age_strength_fecund <- neModel(total.fecundity ~ 
     #                                   Age.category0 + Age.category1,
     #                                   family = gaussian, 
-    #                                   expData = exp.imp.fem.age.strength.pre)
+    #                                   expData = exp_wght_f_age_strength)
     #   
     #   summary(ne.imp.fem.age.strength.pre.fecund)
     # 
@@ -188,51 +193,104 @@
     #   confint(eff.decomp.fem.age.strength.pre.fecund.imp)
 
       
-  ### 3.2 Female mediation model: female age plus post manip degree
-        # with total fecundity.
+  ### 3.2 Female mediation model: female tail streamer length + strength/degree
+        # with total fecundity - age addujsted.
         # exposure = age
-        # mediators = post manip degree
+        # mediators = fxm strength / degree
         # outcomes = total fecundity (females)  
       
         # Estimate the average causal mediation effects (ACME) and the 
         # average direct effect (ADE); 'mediation' package
-        # mediation model = fem.age.degree.post; see section 4.1
-        # outcome model = fem.age.post.deg.tot.fecund
+        # mediation models = f_fxm_TS_age_strength / f_fxm_age_degree; 
+                              # Script 6, section 5.3
+        # outcome model = f_fxm_TS_age_strength_fecund / 
+                      #   f_fxm_TS_age_degree_fecund
         
-    ## a) fit full model
-      fem.age.post.deg.tot.fecund <- glm(total.fecundity ~ 
-                                        Age.category + degree.post,
-                                        # test for intx
-                                        # Age.category * degree.post,
-                                        family = 'gaussian',
-                                        data = subset(chr15_attrib_post_df,
-                                                  Sex == 'f' &
-                                                  !is.na(degree.post) &
-                                                  !is.na(total.fecundity)))
+    ## a) Female Tail Streamer - Strength fxm full model
+      # both full and mediator models adjusted for age
+      f_fxm_TS_age_strength_fecund <- lm(total.fecundity ~ 
+                                      scale(Mean.TS) + strength.fxm 
+                                    # adjust for age as confounder
+                                      + Age.category ,
+                                    # test for intx
+                                      #scale(Mean.TS) * strength.fxm,
+                                      #family = 'gaussian',
+                                      data = subset(chr15_attrib_df,
+                                            Sex == 'f' &
+                                            !is.na(Mean.TS) &
+                                            !is.na(strength.fxm) &
+                                            !is.na(Age.category) &
+                                            !is.na(total.fecundity)))
     ## b) full model summary
-      summary(fem.age.post.deg.tot.fecund)
-        
-    ## d) Estimate average causal mediation effects
-      med.out.fem.age.post.deg.fecund <- mediate(fem.age.degree.post, 
-                                                   fem.age.post.deg.tot.fecund, 
-                                                   treat = "Age.category", 
-                                                   mediator = "degree.post",
-                                                   boot = TRUE, sims = 1000) 
-        
+      summary(f_fxm_TS_age_strength_fecund)
+      
+    ## c) Estimate average causal mediation effects
+      med_out_f_TS_age_strength_fecund <- mediate(f_fxm_TS_age_strength, 
+                                               f_fxm_TS_age_strength_fecund, 
+                                               treat = "scale(Mean.TS)", 
+                                               mediator = "strength.fxm",
+                                               robustSE = TRUE, sims = 1000) 
+      
     ## d) test for exposure*mediator intx
-        # test.TMint(med.out.fem.age.post.deg.fecund, 
-        #            conf.level = .95)
-        
+      # test.TMint(med_out_f_TS_age_strength_fecund,
+      #            conf.level = .95)
+      
     ## e) Average causal mediation model summary
-      summary(med.out.fem.age.post.deg.fecund)
-        
-    # ## f) sensitivity analysis for unmeasured confounder between mediator and 
-        # outcome
-        # sens.out <- medsens(med.out.fem.age.post.deg.fecund, 
-        #                     rho.by = 0.1, effect.type = "indirect", 
-        #                     sims = 1000)
-        # summary(sens.out)
-        
+      summary(med_out_f_TS_age_strength_fecund)
+      
+    ## f) sensitivity analysis for unmeasured confounder between mediator and 
+      # outcome
+      sens_f_TS_age_strength_fecund <- 
+        medsens(med_out_f_TS_age_strength_fecund,
+                rho.by = 0.1, effect.type = 'indirect',
+                sims = 1000)
+      
+      summary(sens_f_TS_age_strength_fecund)
+      plot(sens_f_TS_age_strength_fecund)
+      
+    ## g) Female Tail Streamer - Degree fxm full model 
+      # both full and mediator models adjusted for age
+      f_fxm_TS_age_degree_fecund <- lm(total.fecundity ~ 
+                                      scale(Mean.TS) + degree.fxm 
+                                    # adjust for age as confounder
+                                      + Age.category ,
+                                    # test for intx
+                                      #scale(Mean.TS) * degree.fxm,
+                                      #family = 'gaussian',
+                                      data = subset(chr15_attrib_df,
+                                            Sex == 'f' &
+                                            !is.na(Mean.TS) &
+                                            !is.na(degree.fxm) &
+                                            !is.na(Age.category) &
+                                            !is.na(total.fecundity)))
+    ## h) full model summary
+      summary(f_fxm_TS_age_degree_fecund)
+      
+    ## i) Estimate average causal mediation effects
+      med_out_f_TS_age_degree_fecund <- mediate(f_fxm_TS_age_degree, 
+                                            f_fxm_TS_age_degree_fecund, 
+                                                treat = "scale(Mean.TS)", 
+                                                mediator = "degree.fxm",
+                                                robustSE = TRUE, sims = 1000) 
+      
+    ## j) test for exposure*mediator intx
+      # test.TMint(med_out_f_TS_age_degree_fecund,
+      #            conf.level = .95)
+      
+    ## k) Average causal mediation model summary
+      summary(med_out_f_TS_age_degree_fecund)
+      
+    ## l) sensitivity analysis for unmeasured confounder between mediator and 
+      # outcome
+      sens_f_TS_age_degree_fecund <- 
+        medsens(med_out_f_TS_age_degree_fecund,
+                rho.by = 0.1, effect.type = 'indirect',
+                sims = 1000)
+      
+      summary(sens_f_TS_age_degree_fecund)
+      plot(sens_f_TS_age_degree_fecund)
+      
+      
 
           
 ###############################################################################
@@ -240,7 +298,7 @@
 ###############################################################################
       
 
-  ### 4.1 Male mediation model: male age plus pre-manip strength
+  ### 4.1 Male mediation model: male age + pre-manip strength
         # with first clutch total paternity.
         # exposure = age
         # mediators = pre-manip strength
@@ -248,141 +306,148 @@
         
        # Estimate the average causal mediation effects (ACME) and the 
         # average direct effect (ADE); 'mediation' package
-        # mediation model = m.age.strength.pre; see section 4.2
-        # outcome model = m.age.pre.strength.attmpt.1.tot.pat.out
+        # mediation model = m_fxm_age_strength; Script 6, section 5.2
+        # outcome model = m_fxm_age_strength_tot_pat
         
-    ## a) fit full model
-      m.age.pre.strength.attmpt.1.tot.pat.out <- glm(attmpt.1.tot.pat ~ 
-                                        #Age.category + strength.pre,
-                                        # test for intx
-                                        Age.category * strength.pre,
-                                        family = 'gaussian',
-                                        data = subset(chr15_attrib_pre_df,
-                                                  Sex == 'm' &
-                                                  !is.na(strength.pre) &
-                                                  !is.na(attmpt.1.tot.pat)))
-
-    ## b) full model summary
-      summary(m.age.pre.strength.attmpt.1.tot.pat.out)
-        
-    ## c) Estimate average causal mediation effects
-      med.out.m.age.pre.strength.attmpt.1.tot.pat <- mediate(m.age.strength.pre, 
-                                    m.age.pre.strength.attmpt.1.tot.pat.out, 
-                                    treat = "Age.category", 
-                                    mediator = "strength.pre",
-                                    boot = TRUE, sims = 1000) 
-        
-    # ## d) test for exposure*mediator intx
-    #     test.TMint(med.out.m.age.pre.strength.attmpt.1.tot.pat, 
-    #                conf.level = .95)
-        
-    ## e) Average causal mediation model summary
-        summary(med.out.m.age.pre.strength.attmpt.1.tot.pat)
-        
-    # ## f) sensitivity analysis for unmeasure confounder between mediator and 
-        # outcome
-        # sens.out <- medsens(med.out.m.age.pre.strength.attmpt.1.tot.pat, 
-        #                     rho.by = 0.1, effect.type = "indirect", 
-        #                     sims = 1000)
-        # summary(sens.out)        
-    
- 
-  ### 4.2 Male mediation model: male age plus post manip degree
-        # with second clutch total paternity.
-        # exposure = age
-        # mediators = post manip degree
-        # outcomes = clutch 2 total paternity 
-        
-        # Estimate the average causal mediation effects (ACME) and the 
-        # average direct effect (ADE); 'mediation' package
-        # mediation model = m.age.degree.post; see section 4.2
-        # outcome model = m.age.post.degree.attmpt.2.tot.pat.out
-        
-    ## a) fit full model
-       m.age.post.degree.attmpt.2.tot.pat.out <- glm(attmpt.2.tot.pat ~ 
-                                        Age.category + degree.post,
-                                        # test for intx
-                                        #Age.category * degree.post,
-                                        family = 'gaussian',
-                                        data = subset(chr15_attrib_post_df,
-                                                  Sex == 'm' &
-                                                  !is.na(degree.post) &
-                                                  !is.na(attmpt.2.tot.pat)))
-        
-    ## b) full model summary
-      summary(m.age.post.degree.attmpt.2.tot.pat.out)
-        
-    ## c) Estimate average causal mediation effects
-      med.out.m.age.post.degree.attmpt.2.tot.pat <- mediate(m.age.degree.post, 
-                                      m.age.post.degree.attmpt.2.tot.pat.out, 
-                                      treat = 'Age.category', 
-                                      mediator = 'degree.post',
-                                      boot = TRUE, sims = 1000) 
-        
-    # ## d) test for exposure*mediator intx
-    #   test.TMint(med.out.m.age.post.degree.attmpt.2.tot.pat, 
-    #                conf.level = .95)
-        
-    ## e) Average causal mediation model summary
-      summary(med.out.m.age.post.degree.attmpt.2.tot.pat)
-        
-    # ## f) sensitivity analysis for unmeasured confounder between mediator and 
-        # outcome
-        # sens.out <- medsens(med.out.m.age.post.degree.attmpt.2.tot.pat, 
-        #                     rho.by = 0.1, effect.type = "indirect", 
-        #                     sims = 1000)
-        # summary(sens.out)    
-        
-    
-  ### 4.3 Male mediation model: male age plus pre-manip strength
-        # with all clutches total paternity.
-        # exposure = age
-        # mediators = pre-manip strength
-        # outcomes = all clutches total paternity 
-        
-        # Estimate the average causal mediation effects (ACME) and the 
-        # average direct effect (ADE); 'mediation' package
-        # mediation model = m.age.strength.pre; see section 4.2
-        # outcome model = m.age.pre.strength.total.paternity.out
-      
-    ## a) fit full model
-      m.age.pre.strength.total.paternity.out <- glm(total.paternity ~ 
-                                              Age.category + strength.pre,
-                                              # test for intx
-                                              #Age.category * strength.pre,
-                                              family = 'gaussian',
-                                              data = subset(chr15_attrib_pre_df,
-                                                     Sex == 'm' &
-                                                     !is.na(strength.pre) &
-                                                     !is.na(total.paternity)))
+    ## a) Male Age - Strength fxm full model
+      m_fxm_age_strength_tot_pat <- lm(nest.2.3.tot.pat ~ 
+                                  Age.category + strength.fxm,
+                                # test for intx
+                                   #Age.category * strength.fxm,
+                                   #family = 'gaussian',
+                                  data = subset(chr15_attrib_df,
+                                        Sex == 'm' &
+                                        !is.na(Age.category) &
+                                        !is.na(strength.fxm) &
+                                        !is.na(nest.2.3.tot.pat)))
       
     ## b) full model summary
-      summary(m.age.pre.strength.total.paternity.out)
+      summary(m_fxm_age_strength_tot_pat)
       
     ## c) Estimate average causal mediation effects
-      med.out.m.age.pre.strength.total.paternity <- mediate(m.age.strength.pre, 
-                                        m.age.pre.strength.total.paternity.out, 
-                                        treat = "Age.category", 
-                                        mediator = "strength.pre",
-                                        boot = TRUE, sims = 1000) 
+      med_out_m_age_strength_tot_pat <- mediate(m_fxm_age_strength, 
+                                               m_fxm_age_strength_tot_pat, 
+                                               treat = "Age.category", 
+                                               mediator = "strength.fxm",
+                                               robustSE = TRUE, sims = 1000) 
       
-    # ## d) test for exposure*mediator intx
-    #   test.TMint(med.out.m.age.pre.strength.total.paternity, 
-    #              conf.level = .95)
+    ## d) test for exposure*mediator intx
+      # test.TMint(med_out_m_age_strength_tot_pat,
+      #            conf.level = .95)
       
     ## e) Average causal mediation model summary
-      summary(med.out.m.age.pre.strength.total.paternity)
+      summary(med_out_m_age_strength_tot_pat)
       
-    # ## f) sensitivity analysis for unmeasure confounder between mediator and 
+    ## f) sensitivity analysis for unmeasured confounder between mediator and 
       # outcome
-      # sens.out <- medsens(med.out.m.age.pre.strength.total.paternity, 
-      #                     rho.by = 0.1, effect.type = "indirect", 
-      #                     sims = 1000)
-      # summary(sens.out)      
-        
+      sens_m_age_strength_tot_pat <- 
+        medsens(med_out_m_age_strength_tot_pat,
+                rho.by = 0.1, effect.type = 'indirect',
+                sims = 1000)
+      
+      summary(sens_m_age_strength_tot_pat)
+      plot(sens_m_age_strength_tot_pat)
+    
  
-     
-   
+    ### 4.2 Male mediation model: male tail streamer length + strength/degree
+      # with total fecundity - age addujsted.
+      # exposure = age
+      # mediators = fxm strength / degree
+      # outcomes = total fecundity (females)  
+      
+      # Estimate the average causal mediation effects (ACME) and the 
+      # average direct effect (ADE); 'mediation' package
+      # mediation models = f_fxm_TS_age_strength / f_fxm_age_degree; 
+      # Script 6, section 5.5
+      # outcome model = f_fxm_TS_age_strength_fecund / 
+      #   f_fxm_TS_age_degree_fecund
+      
+    ## a) Male Tail Streamer - Strength fxm full model
+      # both full and mediator models adjusted for age
+      m_fxm_TS_age_strength_tot_pat <- lm(nest.2.3.tot.pat ~ 
+                                     scale(Mean.TS) + strength.fxm 
+                                   # adjust for age as confounder
+                                     + Age.category ,
+                                   # test for intx
+                                     #scale(Mean.TS) * strength.fxm,
+                                     #family = 'gaussian',
+                                     data = subset(chr15_attrib_df,
+                                           Sex == 'm' &
+                                           !is.na(Mean.TS) &
+                                           !is.na(strength.fxm) &
+                                           !is.na(Age.category) &
+                                           !is.na(nest.2.3.tot.pat)))
+      
+    ## b) full model summary
+      summary(m_fxm_TS_age_strength_tot_pat)
+      
+    ## c) Estimate average causal mediation effects
+      med_out_m_TS_age_strength_tot_pat <- mediate(m_fxm_TS_age_strength, 
+                                            m_fxm_TS_age_strength_tot_pat, 
+                                            treat = "scale(Mean.TS)", 
+                                            mediator = "strength.fxm",
+                                            robustSE = TRUE, sims = 1000) 
+      
+    ## d) test for exposure*mediator intx
+      # test.TMint(med_out_m_TS_age_strength_tot_pat,
+      #            conf.level = .95)
+      
+    ## e) Average causal mediation model summary
+      summary(med_out_m_TS_age_strength_tot_pat)
+      
+    ## f) sensitivity analysis for unmeasured confounder between mediator and 
+      # outcome
+      sens_m_TS_age_strength_tot_pat <- 
+        medsens(med_out_m_TS_age_strength_tot_pat,
+                rho.by = 0.1, effect.type = 'indirect',
+                sims = 1000)
+      
+      summary(sens_m_TS_age_strength_tot_pat)
+      plot(sens_m_TS_age_strength_tot_pat)
+      
+    ## g) Male Tail Streamer - Degree fxm full model 
+      # both full and mediator models adjusted for age
+      m_fxm_TS_age_degree_tot_pat <- lm(nest.2.3.tot.pat ~ 
+                                   scale(Mean.TS) + degree.fxm 
+                                 # adjust for age as confounder
+                                   + Age.category ,
+                                 # test for intx
+                                   #scale(Mean.TS) * degree.fxm,
+                                   #family = 'gaussian',
+                                   data = subset(chr15_attrib_df,
+                                         Sex == 'm' &
+                                         !is.na(Mean.TS) &
+                                         !is.na(degree.fxm) &
+                                         !is.na(Age.category) &
+                                         !is.na(nest.2.3.tot.pat)))
+  
+    ## h) full model summary
+      summary(m_fxm_TS_age_degree_tot_pat)
+      
+    ## i) Estimate average causal mediation effects
+      med_out_m_TS_age_degree_tot_pat <- mediate(m_fxm_TS_age_degree, 
+                                            m_fxm_TS_age_degree_tot_pat, 
+                                            treat = "scale(Mean.TS)", 
+                                            mediator = "degree.fxm",
+                                            robustSE = TRUE, sims = 1000) 
+      
+    ## j) test for exposure*mediator intx
+      # test.TMint(med_out_m_TS_age_degree_tot_pat,
+      #            conf.level = .95)
+      
+    ## k) Average causal mediation model summary
+      summary(med_out_m_TS_age_degree_tot_pat)
+      
+    ## l) sensitivity analysis for unmeasured confounder between mediator and 
+      # outcome
+      sens_m_TS_age_degree_tot_pat <- 
+        medsens(med_out_m_TS_age_degree_tot_pat,
+                rho.by = 0.1, effect.type = 'indirect',
+                sims = 1000)
+      
+      summary(sens_m_TS_age_degree_tot_pat)
+      plot(sens_m_TS_age_degree_tot_pat)
+      
       
       
 ###############################################################################
@@ -394,10 +459,10 @@
       `Effect type` <- c('indirect', 'direct', 'total', 'Prop. Mediated')
      
 
-  ### 5.2 Tidy female effects decomposition: female age plus pre-manip strength
+  ### 5.2 Tidy female effects decomposition: female age + strength
       # with total fecundity.
     ## a) Assign to generic model
-      model <- med.out.fem.age.pre.strength.fecund
+      model <- med_out_f_age_strength_fecund
     
     ## b) create a vector of estimates
       `Estimate` <- c(model$d.avg, model$z.avg, model$tau.coef, model$n.avg) 
@@ -415,30 +480,29 @@
                      model$n.avg.p)
     
     ## f) Combine vectors into a tibble
-      tidy.fem.age.pre.strength.fecund <- tibble(`Effect type`, `Estimate`,
+      tidy_f_age_strength_fecund <- tibble(`Effect type`, `Estimate`,
                                                 `95% CI Lower`, `95% CI Upper`,
                                                 `p-value`)
   
     ## g) Label the estimates in data frame by sex
-      tidy.fem.age.pre.strength.fecund$sex <- c('female')
+      tidy_f_age_strength_fecund$sex <- c('female')
       
     ## h) Label the estimates in data frame by sex
-      tidy.fem.age.pre.strength.fecund$model <- c('age-strength-fecundity')
+      tidy_f_age_strength_fecund$model <- c('age-strength-fecundity')
       
     ## i) Re-code *nominal* factor (with ordered levels)  
       # Set levels (odering) of 'Effect type' variable 
-      tidy.fem.age.pre.strength.fecund <- 
-        transform(tidy.fem.age.pre.strength.fecund, 
+      tidy_f_age_strength_fecund <- 
+        transform(tidy_f_age_strength_fecund, 
                   `Effect type` = factor(`Effect type`,
                                   levels = c('total','direct','indirect', 
-                                                    'Prop. Mediated'
-                                         )))
+                                             'Prop. Mediated')))
+
       
-      
-  ### 5.3 Tidy female effects decomposition: female age plus post manip degree
-      # with total fecundity.
+  ### 5.3 Tidy female effects decomposition: female tail streamer length +
+      # strength with total fecundity - age adjusted
     ## a) Assign to generic model
-      model <- med.out.fem.age.post.deg.fecund
+      model <- med_out_f_TS_age_strength_fecund
       
     ## b) create a vector of estimates
       `Estimate` <- c(model$d.avg, model$z.avg, model$tau.coef, model$n.avg) 
@@ -456,30 +520,29 @@
                      model$n.avg.p)
       
     ## f) Combine vectors into a tibble
-      tidy.fem.age.post.deg.fecund <- tibble(`Effect type`, `Estimate`,
-                                                 `95% CI Lower`, `95% CI Upper`,
-                                                 `p-value`)
+      tidy_f_TS_age_strength_fecund <- tibble(`Effect type`, `Estimate`,
+                                           `95% CI Lower`, `95% CI Upper`,
+                                           `p-value`)
       
     ## g) Label the estimates in data frame by sex
-      tidy.fem.age.post.deg.fecund$sex <- c('female')
+      tidy_f_TS_age_strength_fecund$sex <- c('female')
       
     ## h) Label the estimates in data frame by sex
-      tidy.fem.age.post.deg.fecund$model <- c('age-degree-fecundity')  
+      tidy_f_TS_age_strength_fecund$model <- c('TS-strength-fecundity')
       
     ## i) Re-code *nominal* factor (with ordered levels)  
       # Set levels (odering) of 'Effect type' variable 
-      tidy.fem.age.post.deg.fecund <- 
-        transform(tidy.fem.age.post.deg.fecund, 
+      tidy_f_TS_age_strength_fecund <- 
+        transform(tidy_f_TS_age_strength_fecund, 
                   `Effect type` = factor(`Effect type`,
-                                levels = c('total','direct','indirect', 
-                                                    'Prop. Mediated'
-                                         )))
+                                     levels = c('total','direct','indirect', 
+                                                'Prop. Mediated')))
       
       
-  ### 5.4 Tidy male effects decomposition: male age plus pre-manip strength
-      # with first clutch total paternity.
+  ### 5.4 Tidy female effects decomposition: female tail streamer length +
+      # degree with total fecundity - age adjusted
     ## a) Assign to generic model
-      model <- med.out.m.age.pre.strength.attmpt.1.tot.pat
+      model <- med_out_f_TS_age_degree_fecund
       
     ## b) create a vector of estimates
       `Estimate` <- c(model$d.avg, model$z.avg, model$tau.coef, model$n.avg) 
@@ -497,31 +560,29 @@
                      model$n.avg.p)
       
     ## f) Combine vectors into a tibble
-      tidy.m.age.pre.strength.attmpt.1.tot.pat <- tibble(`Effect type`, 
-                                            `Estimate`, `95% CI Lower`, 
-                                            `95% CI Upper`, `p-value`)
+      tidy_f_TS_age_degree_fecund <- tibble(`Effect type`, `Estimate`,
+                                              `95% CI Lower`, `95% CI Upper`,
+                                              `p-value`)
       
     ## g) Label the estimates in data frame by sex
-      tidy.m.age.pre.strength.attmpt.1.tot.pat$sex <- c('male')
+      tidy_f_TS_age_degree_fecund$sex <- c('female')
       
     ## h) Label the estimates in data frame by sex
-      tidy.m.age.pre.strength.attmpt.1.tot.pat$model <- 
-        c('age-strength-clutch1-paternity') 
-     
+      tidy_f_TS_age_degree_fecund$model <- c('TS-degree-fecundity')
+      
     ## i) Re-code *nominal* factor (with ordered levels)  
       # Set levels (odering) of 'Effect type' variable 
-      tidy.m.age.pre.strength.attmpt.1.tot.pat <- 
-        transform(tidy.m.age.pre.strength.attmpt.1.tot.pat, 
+      tidy_f_TS_age_degree_fecund <- 
+        transform(tidy_f_TS_age_degree_fecund, 
                   `Effect type` = factor(`Effect type`,
-                                  levels = c('total','direct','indirect', 
-                                                    'Prop. Mediated'
-                                         )))
+                                     levels = c('total','direct','indirect', 
+                                                'Prop. Mediated')))
       
-    
-  ### 5.5 Tidy male effects decomposition: male age plus post manip degree
-      # with second clutch total paternity.
+      
+  ### 5.5 Tidy male effects decomposition: male age + strength
+      # with nests 2-3 total paternity.
     ## a) Assign to generic model
-      model <- med.out.m.age.post.degree.attmpt.2.tot.pat
+      model <- med_out_m_age_strength_tot_pat
       
     ## b) create a vector of estimates
       `Estimate` <- c(model$d.avg, model$z.avg, model$tau.coef, model$n.avg) 
@@ -539,31 +600,29 @@
                      model$n.avg.p)
       
     ## f) Combine vectors into a tibble
-      tidy.m.age.post.deg.attmpt.2.tot.pat <- tibble(`Effect type`, 
-                                                         `Estimate`, `95% CI Lower`, 
-                                                         `95% CI Upper`, `p-value`)
+      tidy_m_age_strength_tot_pat <- tibble(`Effect type`, `Estimate`,
+                                           `95% CI Lower`, `95% CI Upper`,
+                                           `p-value`)
       
     ## g) Label the estimates in data frame by sex
-      tidy.m.age.post.deg.attmpt.2.tot.pat$sex <- c('male')
+      tidy_m_age_strength_tot_pat$sex <- c('male')
       
     ## h) Label the estimates in data frame by sex
-      tidy.m.age.post.deg.attmpt.2.tot.pat$model <- 
-        c('age-deg-clutch2-paternity')  
+      tidy_m_age_strength_tot_pat$model <- c('age-strength-tot. pat.')
       
     ## i) Re-code *nominal* factor (with ordered levels)  
       # Set levels (odering) of 'Effect type' variable 
-      tidy.m.age.post.deg.attmpt.2.tot.pat <- 
-        transform(tidy.m.age.post.deg.attmpt.2.tot.pat, 
+      tidy_m_age_strength_tot_pat <- 
+        transform(tidy_m_age_strength_tot_pat, 
                   `Effect type` = factor(`Effect type`,
-                                  levels = c('total','direct','indirect', 
-                                                    'Prop. Mediated'
-                                         )))
+                                     levels = c('total','direct','indirect', 
+                                                'Prop. Mediated')))
       
       
-  ### 5.6 Tidy male effects decomposition: male age plus pre-manip strength
-      # with all clutches total paternity.
+  ### 5.6 Tidy male effects decomposition: male tail streamer length +
+      # strength with nests 2-3 total paternity - age adjusted
     ## a) Assign to generic model
-      model <- med.out.m.age.pre.strength.total.paternity
+      model <- med_out_m_TS_age_strength_tot_pat
       
     ## b) create a vector of estimates
       `Estimate` <- c(model$d.avg, model$z.avg, model$tau.coef, model$n.avg) 
@@ -581,26 +640,63 @@
                      model$n.avg.p)
       
     ## f) Combine vectors into a tibble
-      tidy.m.age.pre.strength.total.paternity <- tibble(`Effect type`, 
-                                                         `Estimate`, `95% CI Lower`, 
-                                                         `95% CI Upper`, `p-value`)
+      tidy_m_TS_age_strength_tot_pat <- tibble(`Effect type`, `Estimate`,
+                                              `95% CI Lower`, `95% CI Upper`,
+                                              `p-value`)
       
     ## g) Label the estimates in data frame by sex
-      tidy.m.age.pre.strength.total.paternity$sex <- c('male')
+      tidy_m_TS_age_strength_tot_pat$sex <- c('male')
       
     ## h) Label the estimates in data frame by sex
-      tidy.m.age.pre.strength.total.paternity$model <- 
-        c('age-strength-total-paternity')  
+      tidy_m_TS_age_strength_tot_pat$model <- c('TS-strength-tot. pat.')
       
     ## i) Re-code *nominal* factor (with ordered levels)  
       # Set levels (odering) of 'Effect type' variable 
-      tidy.m.age.pre.strength.total.paternity <- 
-        transform(tidy.m.age.pre.strength.total.paternity, 
+      tidy_m_TS_age_strength_tot_pat <- 
+        transform(tidy_m_TS_age_strength_tot_pat, 
                   `Effect type` = factor(`Effect type`,
-                                levels = c('total','direct','indirect', 
-                                                    'Prop. Mediated'
-                                         )))
+                                    levels = c('total','direct','indirect', 
+                                               'Prop. Mediated')))
       
+      
+  ### 5.7 Tidy male effects decomposition: male tail streamer length +
+      # degree with nests 2-3 total paternity - age adjusted
+    ## a) Assign to generic model
+      model <- med_out_m_TS_age_degree_tot_pat
+      
+    ## b) create a vector of estimates
+      `Estimate` <- c(model$d.avg, model$z.avg, model$tau.coef, model$n.avg) 
+      
+    ## c) create a vector of lower 95% CI
+      `95% CI Lower` <- c(model$d.avg.ci['2.5%'], model$z.avg.ci['2.5%'], 
+                          model$tau.ci['2.5%'], model$n.avg.ci['2.5%']) 
+      
+    ## d) create a vector of upper 95% CI
+      `95% CI Upper` <- c(model$d.avg.ci['97.5%'], model$z.avg.ci['97.5%'], 
+                          model$tau.ci['97.5%'], model$n.avg.ci['97.5%'])
+      
+    ## e) create a vector of p-values
+      `p-value` <- c(model$d.avg.p, model$z.avg.p, model$tau.p, 
+                     model$n.avg.p)
+      
+    ## f) Combine vectors into a tibble
+      tidy_m_TS_age_degree_tot_pat <- tibble(`Effect type`, `Estimate`,
+                                            `95% CI Lower`, `95% CI Upper`,
+                                            `p-value`)
+      
+    ## g) Label the estimates in data frame by sex
+      tidy_m_TS_age_degree_tot_pat$sex <- c('male')
+      
+    ## h) Label the estimates in data frame by sex
+      tidy_m_TS_age_degree_tot_pat$model <- c('TS-degree-tot. pat.')
+      
+    ## i) Re-code *nominal* factor (with ordered levels)  
+      # Set levels (odering) of 'Effect type' variable 
+      tidy_m_TS_age_degree_tot_pat <- 
+        transform(tidy_m_TS_age_degree_tot_pat, 
+                  `Effect type` = factor(`Effect type`,
+                                   levels = c('total','direct','indirect', 
+                                              'Prop. Mediated')))
       
       
       
@@ -610,13 +706,14 @@
       
   ### 6.1 Female effects decomposition graphs
     ## a) Graph results of total, direct and indirect effects from model of 
-      # female age, pre-manip strength and total fecundity
-      fem.age.pre.strength.fecund.plot <- 
-        ggplot(data = (tidy.fem.age.pre.strength.fecund %>%
+      # female age, fxm strength and total fecundity
+      f_age_strength_fecund_plot <- 
+        ggplot(data = (tidy_f_age_strength_fecund %>%
                          filter(`Effect type` != 'Prop. Mediated')), 
                aes(x = `Effect type`, 
                    y = Estimate, 
                    color = `Effect type`)) +
+        ylim(-2, 8) +
         geom_hline(yintercept = 0, color = 'red',
                    linetype = 2, size = 2) + # line at null behind coefs
         geom_point(size = 8) +
@@ -627,8 +724,7 @@
                                     # , 'firebrick4'
         )) +
         #coord_flip() + # flip x and y axes
-        labs(title = 'Female age, pre-manipulation strength, 
-and total fecundity model') +
+        labs(title = 'age - strength - fecundity') +
         theme(plot.title = element_text(hjust = 0.5, size = 20)) + # center title
         theme(plot.subtitle = element_text(hjust = 0.5, size = 14)) + 
         # bold and size title and axes labels
@@ -658,16 +754,17 @@ and total fecundity model') +
              (bold('Beta estimate and 95% CI'))) 
 
     ## b) view plot  
-      print(fem.age.pre.strength.fecund.plot)
+      print(f_age_strength_fecund_plot)
       
-    ## c) Graph results of total, direct and indirect effects from model of 
-      # female age, post manip degree and total fecundity
-      fem.age.post.deg.fecund.plot <- 
-        ggplot(data = (tidy.fem.age.post.deg.fecund %>%
+  ## c) Graph results of total, direct and indirect effects from model of 
+      # tail streamer length, fxm strength and total fecundity - age adjusted
+      f_TS_age_strength_fecund_plot <- 
+        ggplot(data = (tidy_f_age_strength_fecund %>%
                          filter(`Effect type` != 'Prop. Mediated')), 
                aes(x = `Effect type`, 
                    y = Estimate, 
                    color = `Effect type`)) +
+        ylim(-2, 8) +
         geom_hline(yintercept = 0, color = 'red',
                    linetype = 2, size = 2) + # line at null behind coefs
         geom_point(size = 8) +
@@ -678,81 +775,7 @@ and total fecundity model') +
                                     # , 'firebrick4'
         )) +
         #coord_flip() + # flip x and y axes
-        labs(title = 'Female age, post manipulation degree, 
-and total fecundity model') +
-        theme(plot.title = element_text(hjust = 0.5, size = 20)) + # center title
-        theme(plot.subtitle = element_text(hjust = 0.5, size = 14)) + 
-        # bold and size title and axes labels
-        theme(text = element_text(size=22, face = 'bold')) +
-        theme(legend.position = 'none') +
-        theme(axis.ticks = element_blank()) + # remove axis ticks
-        # remove background color
-        theme(panel.background = element_rect(fill = 'white')) +
-        # add major axes
-        theme(axis.line = element_line(colour = 'black',
-                                       linewidth = 0.5, linetype = 'solid')) +
-        # change axes font style, color, size, angle, margin, and legend
-        theme(axis.text.x = element_text(face='bold', color='black', 
-                                         size=22, angle=0,
-                                         margin = margin(t = 10, r = 0, 
-                                                         b = 10, l = 0)),
-              axis.text.y = element_text(face='bold', color='black', 
-                                         size=22, angle=0, 
-                                         margin = margin(t = 0, r = 0, 
-                                                         b = 0, l = 10)),
-              axis.title.y = element_blank(), # remove y axis title
-              legend.title=element_blank(),
-              legend.text=element_text(size=14),
-              legend.position = 'none', #c(0.91, 0.94),
-              legend.key = element_blank()) +
-        xlab(expression(italic('Effect Type')))
-        # +
-        # ylab(expression
-        #      (bold('Beta estimate and 95% CI'))) 
-      
-    ## d) view plot
-      print(fem.age.post.deg.fecund.plot)
-      
-    
-    ## e) make panel plot using patchwork
-      female.panel.plot <- (fem.age.pre.strength.fecund.plot | 
-                       fem.age.post.deg.fecund.plot)
-      
-    ## f) view panel plot
-      female.panel.plot
-      
-    ## h) save panel plot
-      # use ggsave to save the plot
-      ggsave('female.panel.plot.pdf', 
-             plot = female.panel.plot, 
-             device = NULL,
-             path = paste0(here(),'/output'), 
-             scale = 1, width = 12,
-             height = 6,
-             units = c('in'), dpi = 300, limitsize = TRUE)
-      
-      
-  ### 6.2 Male effects decomposition graphs
-    ## a) Graph results of total, direct and indirect effects from model of 
-      # male age, pre-manip strength and first clutch paternity
-      m.age.pre.strength.attmpt.1.tot.pat.plot <- 
-        ggplot(data = (tidy.m.age.pre.strength.attmpt.1.tot.pat %>%
-                         filter(`Effect type` != 'Prop. Mediated')), 
-               aes(x = `Effect type`, 
-                   y = Estimate, 
-                   color = `Effect type`)) +
-        geom_hline(yintercept = 0, color = 'red',
-                   linetype = 2, size = 2) + # line at null behind coefs
-        geom_point(size = 8) +
-        geom_errorbar(aes(ymin=(`95% CI Lower`), 
-                          ymax=(`95% CI Upper`)), width = .1, size = 2,
-                      position = position_dodge(0.5))+
-        scale_color_manual(values=c('seagreen3', 'seagreen4', 'seagreen1'
-                                    # , 'firebrick4'
-        )) +
-        #coord_flip() + # flip x and y axes
-        labs(title = 'Male age, pre-manipulation strength, 
-and clutch 1 paternity model') +
+        labs(title = 'TS - strength - fecundity') +
         theme(plot.title = element_text(hjust = 0.5, size = 20)) + # center title
         theme(plot.subtitle = element_text(hjust = 0.5, size = 14)) + 
         # bold and size title and axes labels
@@ -781,29 +804,29 @@ and clutch 1 paternity model') +
         ylab(expression
              (bold('Beta estimate and 95% CI'))) 
       
-    ## b) view plot  
-      print(m.age.pre.strength.attmpt.1.tot.pat.plot)
+    ## d) view plot  
+      print(f_TS_age_strength_fecund_plot)
       
-    ## c) Graph results of total, direct and indirect effects from model of 
-      # male age, post manip degree and clutch 2 paternity
-      m.age.post.deg.attmpt.2.tot.pat.plot <- 
-        ggplot(data = (tidy.m.age.post.deg.attmpt.2.tot.pat %>%
+    ## e) Graph results of total, direct and indirect effects from model of 
+      # tail streamer length, fxm degree and total fecundity - age adjusted
+      f_TS_age_degree_fecund_plot <- 
+        ggplot(data = (tidy_f_TS_age_degree_fecund %>%
                          filter(`Effect type` != 'Prop. Mediated')), 
                aes(x = `Effect type`, 
                    y = Estimate, 
                    color = `Effect type`)) +
+        ylim(-2, 8) +
         geom_hline(yintercept = 0, color = 'red',
                    linetype = 2, size = 2) + # line at null behind coefs
         geom_point(size = 8) +
         geom_errorbar(aes(ymin=(`95% CI Lower`), 
                           ymax=(`95% CI Upper`)), width = .1, size = 2,
                       position = position_dodge(0.5))+
-        scale_color_manual(values=c('seagreen3', 'seagreen4', 'seagreen1'
+        scale_color_manual(values=c('steelblue4', 'darkblue', 'steelblue1'
                                     # , 'firebrick4'
         )) +
         #coord_flip() + # flip x and y axes
-        labs(title = 'Male age, post manipulation degree, 
-and clutch 2 paternity model') +
+        labs(title = 'TS - degree - fecundity') +
         theme(plot.title = element_text(hjust = 0.5, size = 20)) + # center title
         theme(plot.subtitle = element_text(hjust = 0.5, size = 14)) + 
         # bold and size title and axes labels
@@ -824,38 +847,57 @@ and clutch 2 paternity model') +
                                          size=22, angle=0, 
                                          margin = margin(t = 0, r = 0, 
                                                          b = 0, l = 10)),
-              #axis.title.y = element_blank(), # remove y axis title
               legend.title=element_blank(),
               legend.text=element_text(size=14),
               legend.position = 'none', #c(0.91, 0.94),
               legend.key = element_blank()) +
-        xlab(expression(italic('Effect Type')))+
+        xlab(expression(italic('Effect Type'))) +
         ylab(expression
              (bold('Beta estimate and 95% CI'))) 
       
-    ## d) view plot
-      print(m.age.post.deg.attmpt.2.tot.pat.plot)
+    ## f) view plot  
+      print(f_TS_age_degree_fecund_plot)
+    
+    ## g) make panel plot using patchwork
+      female_panel_plot <- (f_age_strength_fecund_plot | 
+                            f_TS_age_strength_fecund_plot | 
+                            f_TS_age_degree_fecund_plot)
       
-    ## e) Graph results of total, direct and indirect effects from model of 
-      # male age, pre-manip degree and all clutches total paternity
-      m.age.strength.total.paternity.plot <- 
-        ggplot(data = (tidy.m.age.pre.strength.total.paternity %>%
+    ## h) view panel plot
+      female_panel_plot
+      
+    ## i) save panel plot
+      # use ggsave to save the plot
+      ggsave('female_panel_plot.pdf', 
+             plot = female_panel_plot, 
+             device = NULL,
+             path = paste0(here(),'/output'), 
+             scale = 1, width = 16,
+             height = 6,
+             units = c('in'), dpi = 300, limitsize = TRUE)
+      
+      
+  ### 6.2 Male effects decomposition graphss
+    ## a) Graph results of total, direct and indirect effects from model of 
+      # male age, fxm strength and total fecundity
+      m_age_strength_tot_pat_plot <- 
+        ggplot(data = (tidy_m_age_strength_tot_pat %>%
                          filter(`Effect type` != 'Prop. Mediated')), 
                aes(x = `Effect type`, 
                    y = Estimate, 
                    color = `Effect type`)) +
+        ylim(-2, 8) +
         geom_hline(yintercept = 0, color = 'red',
                    linetype = 2, size = 2) + # line at null behind coefs
         geom_point(size = 8) +
         geom_errorbar(aes(ymin=(`95% CI Lower`), 
                           ymax=(`95% CI Upper`)), width = .1, size = 2,
                       position = position_dodge(0.5))+
-        scale_color_manual(values=c('seagreen3', 'seagreen4', 'seagreen1'
+        scale_color_manual(values=c('steelblue4', 'darkblue', 'steelblue1'
                                     # , 'firebrick4'
         )) +
         #coord_flip() + # flip x and y axes
-        labs(title = 'Male age, pre-manipulation strength, 
-and all clutches paternity model') +
+        labs(title = 'age - strength - tot. pat.') +
         theme(plot.title = element_text(hjust = 0.5, size = 20)) + # center title
         theme(plot.subtitle = element_text(hjust = 0.5, size = 14)) + 
         # bold and size title and axes labels
@@ -876,33 +918,136 @@ and all clutches paternity model') +
                                          size=22, angle=0, 
                                          margin = margin(t = 0, r = 0, 
                                                          b = 0, l = 10)),
-              axis.title.y = element_blank(), # remove y axis title
               legend.title=element_blank(),
               legend.text=element_text(size=14),
               legend.position = 'none', #c(0.91, 0.94),
               legend.key = element_blank()) +
-        xlab(expression(italic('Effect Type')))
-      # +
-      # ylab(expression
-      #      (bold('Beta estimate and 95% CI'))) 
+        xlab(expression(italic('Effect Type'))) +
+        ylab(expression
+             (bold('Beta estimate and 95% CI'))) 
       
-    ## f) view plot
-      print(m.age.strength.total.paternity.plot)
+      ## b) view plot  
+      print(m_age_strength_tot_pat_plot)
+      
+    ## c) Graph results of total, direct and indirect effects from model of 
+      # male tail streamer length, fxm strength and nests 2-3 total paternity 
+      # - age adjusted
+      m_TS_age_strength_tot_pat_plot <- 
+        ggplot(data = (tidy_m_age_strength_tot_pat %>%
+                         filter(`Effect type` != 'Prop. Mediated')), 
+               aes(x = `Effect type`, 
+                   y = Estimate, 
+                   color = `Effect type`)) +
+        ylim(-2, 8) +
+        geom_hline(yintercept = 0, color = 'red',
+                   linetype = 2, size = 2) + # line at null behind coefs
+        geom_point(size = 8) +
+        geom_errorbar(aes(ymin=(`95% CI Lower`), 
+                          ymax=(`95% CI Upper`)), width = .1, size = 2,
+                      position = position_dodge(0.5))+
+        scale_color_manual(values=c('steelblue4', 'darkblue', 'steelblue1'
+                                    # , 'firebrick4'
+        )) +
+        #coord_flip() + # flip x and y axes
+        labs(title = 'TS - strength - tot. pat.') +
+        theme(plot.title = element_text(hjust = 0.5, size = 20)) + # center title
+        theme(plot.subtitle = element_text(hjust = 0.5, size = 14)) + 
+        # bold and size title and axes labels
+        theme(text = element_text(size=22, face = 'bold')) +
+        theme(legend.position = 'none') +
+        theme(axis.ticks = element_blank()) + # remove axis ticks
+        # remove background color
+        theme(panel.background = element_rect(fill = 'white')) +
+        # add major axes
+        theme(axis.line = element_line(colour = 'black',
+                                       linewidth = 0.5, linetype = 'solid')) +
+        # change axes font style, color, size, angle, margin, and legend
+        theme(axis.text.x = element_text(face='bold', color='black', 
+                                         size=22, angle=0,
+                                         margin = margin(t = 10, r = 0, 
+                                                         b = 10, l = 0)),
+              axis.text.y = element_text(face='bold', color='black', 
+                                         size=22, angle=0, 
+                                         margin = margin(t = 0, r = 0, 
+                                                         b = 0, l = 10)),
+              legend.title=element_blank(),
+              legend.text=element_text(size=14),
+              legend.position = 'none', #c(0.91, 0.94),
+              legend.key = element_blank()) +
+        xlab(expression(italic('Effect Type'))) +
+        ylab(expression
+             (bold('Beta estimate and 95% CI'))) 
+      
+      ## d) view plot  
+      print(m_TS_age_strength_tot_pat_plot)
+      
+    ## e) Graph results of total, direct and indirect effects from model of 
+      # male tail streamer length, fxm degree and nests 2-3 total paternity 
+      # - age adjusted
+      m_TS_age_degree_tot_pat_plot <- 
+        ggplot(data = (tidy_m_TS_age_degree_tot_pat %>%
+                         filter(`Effect type` != 'Prop. Mediated')), 
+               aes(x = `Effect type`, 
+                   y = Estimate, 
+                   color = `Effect type`)) +
+        ylim(-2, 8) +
+        geom_hline(yintercept = 0, color = 'red',
+                   linetype = 2, size = 2) + # line at null behind coefs
+        geom_point(size = 8) +
+        geom_errorbar(aes(ymin=(`95% CI Lower`), 
+                          ymax=(`95% CI Upper`)), width = .1, size = 2,
+                      position = position_dodge(0.5))+
+        scale_color_manual(values=c('steelblue4', 'darkblue', 'steelblue1'
+                                    # , 'firebrick4'
+        )) +
+        #coord_flip() + # flip x and y axes
+        labs(title = 'TS - degree - tot. pat.') +
+        theme(plot.title = element_text(hjust = 0.5, size = 20)) + # center title
+        theme(plot.subtitle = element_text(hjust = 0.5, size = 14)) + 
+        # bold and size title and axes labels
+        theme(text = element_text(size=22, face = 'bold')) +
+        theme(legend.position = 'none') +
+        theme(axis.ticks = element_blank()) + # remove axis ticks
+        # remove background color
+        theme(panel.background = element_rect(fill = 'white')) +
+        # add major axes
+        theme(axis.line = element_line(colour = 'black',
+                                       linewidth = 0.5, linetype = 'solid')) +
+        # change axes font style, color, size, angle, margin, and legend
+        theme(axis.text.x = element_text(face='bold', color='black', 
+                                         size=22, angle=0,
+                                         margin = margin(t = 10, r = 0, 
+                                                         b = 10, l = 0)),
+              axis.text.y = element_text(face='bold', color='black', 
+                                         size=22, angle=0, 
+                                         margin = margin(t = 0, r = 0, 
+                                                         b = 0, l = 10)),
+              legend.title=element_blank(),
+              legend.text=element_text(size=14),
+              legend.position = 'none', #c(0.91, 0.94),
+              legend.key = element_blank()) +
+        xlab(expression(italic('Effect Type'))) +
+        ylab(expression
+             (bold('Beta estimate and 95% CI'))) 
+      
+    ## f) view plot  
+      print(m_TS_age_degree_tot_pat_plot)
       
     ## g) make panel plot using patchwork
-      male.panel.plot <- (m.age.pre.strength.attmpt.1.tot.pat.plot / 
-                            (m.age.post.deg.attmpt.2.tot.pat.plot | 
-                            m.age.strength.total.paternity.plot))
+      male_panel_plot <- (m_age_strength_tot_pat_plot | 
+                              m_TS_age_strength_tot_pat_plot | 
+                              m_TS_age_degree_tot_pat_plot)
       
     ## h) view panel plot
-      male.panel.plot
+      male_panel_plot
       
     ## i) save panel plot
       # use ggsave to save the plot
-      ggsave('male.panel.plot.pdf', 
-             plot = male.panel.plot, 
+      ggsave('male_panel_plot.pdf', 
+             plot = male_panel_plot, 
              device = NULL,
              path = paste0(here(),'/output'), 
-             scale = 1, width = 12,
-             height = 12,
+             scale = 1, width = 16,
+             height = 6,
              units = c('in'), dpi = 300, limitsize = TRUE)
+      

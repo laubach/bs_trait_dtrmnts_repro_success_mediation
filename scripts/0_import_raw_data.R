@@ -71,10 +71,10 @@
       # a test data set
       #chr15_intx_path_test <- here('raw_data/2015_CHR_soc/test/')
     
-    ## a) Wild card to match all text files in subdirectory
+    ## b) Wild card to match all text files in subdirectory
       file_pattern <- '*.csv' # regex pattern to match the file name format
     
-    ## b) Function to read csv files and create wide data frame
+    ## c) Function to read csv files and create wide data frame
       read_log_files <- function(chr15_intx_path, file_name){
         read_csv(paste0(chr15_intx_path, file_name)) %>% 
           mutate(file_name = file_name) 
@@ -105,9 +105,6 @@
       chr15_attrib_df <- read_csv(here('raw_data/2015_CHR_attrib',
                                        '2015_chr_attributes.csv'))
       
-    ## b) 2640-97175 is misidentified as a female upon capture. 
-      # SO update sex from 'f' to 'm' since it's a male who didn't breed
-      chr15_attrib_df[chr15_attrib_df$`Band ID` == '2640-97175', 'Sex'] <- 'm'
 
   
           
@@ -118,7 +115,7 @@
   ### 4.1 Import reproductive success data
     ## a) Import 2015_chr_egg_paternity.csv as df
       chr15_repro_suc <- read_csv(here('raw_data/2015_CHR_repro',
-                                        'chr2015_repro_success.csv'))
+                                        '2015_chr_repro_success.csv'))
       
       
   
@@ -130,18 +127,28 @@
     ## a) Save and export raw intx data tables and attribute data
       # Files are saved in the 'data' folder in the working directory as an
       # RData file.
-      save(file = here('data/1_chr15_intx_data.RData'), 
-           list = c('chr15_intx_df', 'chr15_attrib_df'))
-      # Save test data set
-      # save(file = here('raw_data/2015_CHR_soc/test/1_chr15_raw_intx_test_data.RData'), 
-      #      list = c('chr15_intx_df_test'))
+      save(file = here('data/1_chr_attrib_data.RData'), 
+           list = c('chr15_attrib_df'))
       
 
     ## b) Save and export raw repro. success data 
       # Files are saved in the 'data' folder in the working directory as an
       # RData file.
-      save(file = here('data/3_chr15_repro_data.RData'), 
+      save(file = here('data/2_chr_repro_data.RData'), 
            list = c('chr15_repro_suc'))
+      
+      
+    ## c) Save and export raw intx data tables (and attribute table 
+      # for subsetting intx data)
+      # Files are saved in the 'raw_data' folder in the working directory as an
+      # RData file.
+      save(file = here('data/3_chr_intx_data.RData'), 
+           list = c('chr15_intx_df'))
+      
+      # Save test data set
+      # save(file = here('raw_data/2015_CHR_soc/test/1_chr15_raw_intx_test_data.RData'), 
+      #      list = c('chr15_intx_df_test'))
+      
       
       
       
