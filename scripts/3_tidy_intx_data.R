@@ -7,7 +7,7 @@
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 7 Aug 2024                   #############
-#############             last updated: 23 Feb 2025                #############
+#############             last updated: 14 Oct 2025                #############
 ################################################################################
 
 
@@ -385,7 +385,10 @@
 #*****************************************************************************#
 #*****************************************************************************#      
    
-         
+# NOTE: decided to mover forward with only the pre-manipulation data due 
+      # to missing data / loss to follow up in post-manipulation networks
+      
+      
       
 ###############################################################################
 ##############            5. Finalize data selection             ##############
@@ -456,32 +459,32 @@
         select(Tag1, Tag2) 
       
   
-  ### 5.4  Subset the post-manip data by tag signal and select 
-      # variables of interest    
-    ## a) Subset CHR 2015 the data by post-experiment dates: 6/19 - 6/20
-      chr15_fxm_intx_post_df <- chr15_fxm_intx_post_df %>%
-        filter(day(Tstart) == 19 | day(Tstart) == 20 & 
-                 month(Tstart) == 6)
-      
-    # ## b)  extract ID list from Tag1 and Tag2 of of IDs to include in 
-    #   # post manipulation adjacency matrix.
-    #   # Note this is done before RSSI filtering in case any IDs have no 
-    #   # interactions
-    #   id_list_chr15_fxm_intx_post_df <- as.character(sort(union(chr15_fxm_intx_post_df$Tag1, 
-    #                                                             chr15_fxm_intx_post_df$Tag2), 
-    #                                               decreasing = F))
-      
-
-    ## c) create a second data frame that contains the duration of intx at
-      # 20RSSI
-      chr15_fxm_dur_post_df <- chr15_fxm_intx_post_df %>%
-        filter(RSSImean >= 20) %>%
-        select(Tag1, Tag2, duration) 
-      
-    ## d) Subset CHR 2015 post-manipulation by RSSI mean >= 20
-      chr15_fxm_intx_post_df <- chr15_fxm_intx_post_df %>%
-        filter(RSSImean >= 20) %>%
-        select(Tag1, Tag2)
+  # ### 5.4  Subset the post-manip data by tag signal and select 
+  #     # variables of interest    
+  #   ## a) Subset CHR 2015 the data by post-experiment dates: 6/19 - 6/20
+  #     chr15_fxm_intx_post_df <- chr15_fxm_intx_post_df %>%
+  #       filter(day(Tstart) == 19 | day(Tstart) == 20 & 
+  #                month(Tstart) == 6)
+  #     
+  #   # ## b)  extract ID list from Tag1 and Tag2 of of IDs to include in 
+  #   #   # post manipulation adjacency matrix.
+  #   #   # Note this is done before RSSI filtering in case any IDs have no 
+  #   #   # interactions
+  #   #   id_list_chr15_fxm_intx_post_df <- as.character(sort(union(chr15_fxm_intx_post_df$Tag1, 
+  #   #                                                             chr15_fxm_intx_post_df$Tag2), 
+  #   #                                               decreasing = F))
+  #     
+  # 
+  #   ## c) create a second data frame that contains the duration of intx at
+  #     # 20RSSI
+  #     chr15_fxm_dur_post_df <- chr15_fxm_intx_post_df %>%
+  #       filter(RSSImean >= 20) %>%
+  #       select(Tag1, Tag2, duration) 
+  #     
+  #   ## d) Subset CHR 2015 post-manipulation by RSSI mean >= 20
+  #     chr15_fxm_intx_post_df <- chr15_fxm_intx_post_df %>%
+  #       filter(RSSImean >= 20) %>%
+  #       select(Tag1, Tag2)
       
 
       
@@ -523,15 +526,15 @@
                                                 sparse = F) 
  
 
-  ### 6.4 Build CHR 2015 female-male adjacency matrix for >= 20 mean RSSI 
-      # - post manipulation
-    ## a) Use igraph to build graph from social intx. edge list
-      chr15_fxm_intx_post_graph <- graph_from_data_frame(chr15_fxm_intx_post_df, 
-                                                    directed = F)  
-      
-    ## b) Use igraph to build social intx. adjacency matrix 
-      chr15_fxm_intx_post_mat <- as_adjacency_matrix(chr15_fxm_intx_post_graph, 
-                                                sparse = F) 
+  # ### 6.4 Build CHR 2015 female-male adjacency matrix for >= 20 mean RSSI 
+  #     # - post manipulation
+  #   ## a) Use igraph to build graph from social intx. edge list
+  #     chr15_fxm_intx_post_graph <- graph_from_data_frame(chr15_fxm_intx_post_df, 
+  #                                                   directed = F)  
+  #     
+  #   ## b) Use igraph to build social intx. adjacency matrix 
+  #     chr15_fxm_intx_post_mat <- as_adjacency_matrix(chr15_fxm_intx_post_graph, 
+  #                                               sparse = F) 
       
 
 
@@ -557,24 +560,6 @@
                   # male-male pre-manipulation
                     'chr15_mxm_intx_df', 'chr15_mxm_dur_df',
                     # 'chr15_mxm_intx_graph', 
-                    'chr15_mxm_intx_mat',
-                  # female-male post manipulation    
-                    'chr15_fxm_intx_post_df', 
-                    'chr15_fxm_intx_post_mat'))
+                    'chr15_mxm_intx_mat'))
       
-      
-      
-  #   ### 7.2 Export adjacency matrices to .csv files 
-  #       # Files are saved in the 'data' folder in the working directory as an
-  #       # RData file.
-  #       
-  #     ## a) Save and export data for CHR 2015 pre-manipulation >= 20 RSSI
-  #       write.csv(chr15_intx_pre_20rssi_mat, 
-  #                 file = here('data/4_chr15_intx_pre_exp_20rssi.csv'), 
-  #                 row.names = T)
-   
-
-      
-
-      
-    
+ 

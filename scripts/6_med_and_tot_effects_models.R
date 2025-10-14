@@ -7,7 +7,7 @@
 #############                                                      #############
 #############                   By: Zach Laubach                   #############
 #############                 created: 29 Sept 2024                #############
-#############               last updated: 6 Dec 2024               #############
+#############               last updated: 14 Oct 2025             #############
 ################################################################################
 
 
@@ -22,8 +22,7 @@
     # 4. Trait associations with soc. net. metrics 
     # 5. Age association with plumage traits 
     # 6. Soc. net. metrics association with reproduction
-    # 7. Age by soc. net. metrics interaction
-    # 8. Export data 
+    # 7. Export data 
 
     
 
@@ -458,9 +457,9 @@
     ## d) male breast brightness association with 
       # total paternity (nests 2-3) 
       m_R_bright_2_3_tot_pat <- lm(nest.2.3.tot.pat ~ 
-                                  scale(R_avg.bright),
+                                  #scale(R_avg.bright),
                                   # plumage manip. exper.
-                                  #scale(R.bright.treat.and.orig), 
+                                  scale(R.bright.treat.and.orig), 
                                   #Color.manipulation.,
                                   #family = 'gaussian',
                                   data = subset(chr15_attrib_df,
@@ -735,7 +734,8 @@
                             scale(R_avg.bright),
                             # plumage manip. exper.
                             #scale(R.bright.treat.and.orig), 
-                                #family = 'gaussian',
+                            #Color.manipulation., 
+                            #family = 'gaussian',
                                 data = subset(chr15_attrib_df,
                                         Sex == 'm' &
                                         !is.na(R_avg.bright) &
@@ -2317,258 +2317,14 @@
       flextable::save_as_docx(social_detrmnts_repro_frmt, 
                     path = here('output/social_detrmnts_repro_frmt.docx'))  
       
-    
-     
-      
-###############################################################################
-##############      7. Age by soc. net. metrics interaction      ##############
-###############################################################################  
-      
-      
-  # Rationale - Among age and plumage measures (traits) that are associated 
-  #             with reproductive success in at least one sex, determine
-  #             if their are exposure mediation interactions. For mediators,
-  #             limit where age or plumage is associated with soc. network 
-  #             in at least one sex
-      # 7.1 age * strength(fxm)
-      # 7.2 TS * strength(fxm)
-      # 7.3 TS * degree(fxm)
-      
-  ### 7.1 Interaction models: Female trait by node level social network 
-        # measures with reproductive success
-    ## a) Interaction model: female age by strength with total fecundity
-      f_age_x_strength_fxm_tot_fecund <- lm(total.fecundity ~ 
-                                     Age.category * scale(strength.fxm),
-                                    #family = 'gaussian',
-                                    data = subset(chr15_attrib_df,
-                                          Sex == 'f' &
-                                          !is.na(strength.fxm) &
-                                          !is.na(total.fecundity)))
-      
-    ## b) model summary
-      summary(f_age_x_strength_fxm_tot_fecund)    # model summary
-      confint(f_age_x_strength_fxm_tot_fecund, level = 0.95, method = 'profile')
-      #plot(f_age_x_strength_fxm_tot_fecund)
-      
-    ## c) tidy effect estimates
-      f_age_x_strength_fxm_tot_fecund_tidy <- 
-        tidy(f_age_x_strength_fxm_tot_fecund, effects = 'fixed',
-             conf.int = T,
-             conf.method = 'quantile',
-             conf.level = 0.95) %>%
-        filter(term != '(Intercept)') %>%
-        # rename(c(`mix-age` = V2,
-        #          `asy` = V3)) %>%
-        select(c('term', 'estimate', 'p.value', 'conf.low', 'conf.high'))%>%
-        mutate(term = replace(term, term == 'Age.categoryasy:scale(strength.fxm)', 
-                              'age * strength'))
-      # rownames_to_column(' ')
-      
-      # label stratified model
-      f_age_x_strength_fxm_tot_fecund_tidy$model <- 
-        c('tot. fecund. ~ age * strength')
-      
-    ## d) Interaction model: female tail streamer length by strength 
-      # with total fecundity
-      f_TS_x_strength_fxm_tot_fecund <- lm(total.fecundity ~ 
-                                         scale(Mean.TS) * scale(strength.fxm),
-                                        #family = 'gaussian',
-                                        data = subset(chr15_attrib_df,
-                                             Sex == 'f' &
-                                             !is.na(Mean.TS) &
-                                             !is.na(total.fecundity)))
-      
-    ## e) model summary
-      summary(f_TS_x_strength_fxm_tot_fecund)    # model summary
-      confint(f_TS_x_strength_fxm_tot_fecund, level = 0.95, method = 'profile')
-      #plot(f_TS_x_strength_fxm_tot_fecund)
-      
-    ## f) tidy effect estimates
-      f_TS_x_strength_fxm_tot_fecund_tidy <- 
-        tidy(f_TS_x_strength_fxm_tot_fecund, effects = 'fixed',
-             conf.int = T,
-             conf.method = 'quantile',
-             conf.level = 0.95) %>%
-        filter(term != '(Intercept)') %>%
-        # rename(c(`mix-age` = V2,
-        #          `asy` = V3)) %>%
-        select(c('term', 'estimate', 'p.value', 'conf.low', 'conf.high'))%>%
-        mutate(term = replace(term, term == 'scale(Mean.TS):scale(strength.fxm)', 
-                              'TS * strength'))
-      # rownames_to_column(' ')
-      
-      # label stratified model
-      f_TS_x_strength_fxm_tot_fecund_tidy$model <- 
-        c('tot. fecund. ~ TS * strength')
-      
-    ## g) Interaction model: female tail streamer length by degree 
-      # with total fecundity
-      f_TS_x_degree_fxm_tot_fecund <- lm(total.fecundity ~ 
-                                      scale(Mean.TS) * scale(degree.fxm),
-                                    #family = 'gaussian',
-                                    data = subset(chr15_attrib_df,
-                                          Sex == 'f' &
-                                          !is.na(Mean.TS) &
-                                          !is.na(total.fecundity)))
-      
-    ## h) model summary
-      summary(f_TS_x_degree_fxm_tot_fecund)    # model summary
-      confint(f_TS_x_degree_fxm_tot_fecund, level = 0.95, method = 'profile')
-      #plot(f_TS_x_degree_fxm_tot_fecund)
-      
-    ## i) tidy effect estimates
-      f_TS_x_degree_fxm_tot_fecund_tidy <- 
-        tidy(f_TS_x_degree_fxm_tot_fecund, effects = 'fixed',
-             conf.int = T,
-             conf.method = 'quantile',
-             conf.level = 0.95) %>%
-        filter(term != '(Intercept)') %>%
-        # rename(c(`mix-age` = V2,
-        #          `asy` = V3)) %>%
-        select(c('term', 'estimate', 'p.value', 'conf.low', 'conf.high'))%>%
-        mutate(term = replace(term, term == 'scale(Mean.TS):scale(degree.fxm)', 
-                              'TS * degree'))
-      # rownames_to_column(' ')
-      
-      # label stratified model
-      f_TS_x_degree_fxm_tot_fecund_tidy$model <- 
-        c('tot. fecund. ~ TS * degree')
-      
-
-  ### 7.2 Interaction models: Male age by node level social network measures
-      # associations with reproductive success
-    ## a) Interaction model: male age by strength with total fecundity
-      m_age_x_strength_fxm_2_3_tot_pat <- lm(nest.2.3.tot.pat ~ 
-                                       Age.category * scale(strength.fxm),
-                                      #family = 'gaussian',
-                                      data = subset(chr15_attrib_df,
-                                             Sex == 'm' &
-                                             !is.na(strength.fxm) &
-                                             !is.na(nest.2.3.tot.pat)))
-      
-    ## b) model summary
-      summary(m_age_x_strength_fxm_2_3_tot_pat)    # model summary
-      confint(m_age_x_strength_fxm_2_3_tot_pat, level = 0.95, method = 'profile')
-      #plot(m_age_x_strength_fxm_2_3_tot_pat)
-      
-    ## c) tidy effect estimates
-      m_age_x_strength_fxm_2_3_tot_pat_tidy <- 
-        tidy(m_age_x_strength_fxm_2_3_tot_pat, effects = 'fixed',
-             conf.int = T,
-             conf.method = 'quantile',
-             conf.level = 0.95) %>%
-        filter(term != '(Intercept)') %>%
-        # rename(c(`mix-age` = V2,
-        #          `asy` = V3)) %>%
-        select(c('term', 'estimate', 'p.value', 'conf.low', 'conf.high'))%>%
-        mutate(term = replace(term, term == 'Age.categoryasy:scale(strength.fxm)', 
-                              'age * strength'))
-      # rownames_to_column(' ')
-      
-      # label stratified model
-      m_age_x_strength_fxm_2_3_tot_pat_tidy$model <- 
-        c('tot. pat. ~ age * strength')
-      
-    ## d) Interaction model: female tail streamer length by strength 
-      # with total fecundity
-      m_TS_x_strength_fxm_2_3_tot_pat <- lm(nest.2.3.tot.pat ~ 
-                                      scale(Mean.TS) * scale(strength.fxm),
-                                    #family = 'gaussian',
-                                    data = subset(chr15_attrib_df,
-                                          Sex == 'm' &
-                                          !is.na(Mean.TS) &
-                                          !is.na(nest.2.3.tot.pat)))
-      
-    ## e) model summary
-      summary(m_TS_x_strength_fxm_2_3_tot_pat)    # model summary
-      confint(m_TS_x_strength_fxm_2_3_tot_pat, level = 0.95, method = 'profile')
-      #plot(m_TS_x_strength_fxm_2_3_tot_pat)
-      
-    ## f) tidy effect estimates
-      m_TS_x_strength_fxm_2_3_tot_pat_tidy <- 
-        tidy(m_TS_x_strength_fxm_2_3_tot_pat, effects = 'fixed',
-             conf.int = T,
-             conf.method = 'quantile',
-             conf.level = 0.95) %>%
-        filter(term != '(Intercept)') %>%
-        # rename(c(`mix-age` = V2,
-        #          `asy` = V3)) %>%
-        select(c('term', 'estimate', 'p.value', 'conf.low', 'conf.high'))%>%
-        mutate(term = replace(term, term == 'scale(Mean.TS):scale(strength.fxm)', 
-                              'TS * strength'))
-      # rownames_to_column(' ')
-      
-      # label stratified model
-      m_TS_x_strength_fxm_2_3_tot_pat_tidy$model <- 
-        c('tot. pat. ~ TS * strength')
-      
-    ## g) Interaction model: female tail streamer length by degree 
-      # with total fecundity
-      m_TS_x_degree_fxm_2_3_tot_pat <- lm(nest.2.3.tot.pat ~ 
-                                            scale(Mean.TS) * scale(degree.fxm),
-                                          #family = 'gaussian',
-                                          data = subset(chr15_attrib_df,
-                                                        Sex == 'm' &
-                                                          !is.na(Mean.TS) &
-                                                          !is.na(nest.2.3.tot.pat)))
-      
-    ## h) model summary
-      summary(m_TS_x_degree_fxm_2_3_tot_pat)    # model summary
-      confint(m_TS_x_degree_fxm_2_3_tot_pat, level = 0.95, method = 'profile')
-      #plot(m_TS_x_degree_fxm_2_3_tot_pat)
-      
-    ## i) tidy effect estimates
-      m_TS_x_degree_fxm_2_3_tot_pat_tidy <- 
-        tidy(m_TS_x_degree_fxm_2_3_tot_pat, effects = 'fixed',
-             conf.int = T,
-             conf.method = 'quantile',
-             conf.level = 0.95) %>%
-        filter(term != '(Intercept)') %>%
-        # rename(c(`mix-age` = V2,
-        #          `asy` = V3)) %>%
-        select(c('term', 'estimate', 'p.value', 'conf.low', 'conf.high'))%>%
-        mutate(term = replace(term, term == 'scale(Mean.TS):scale(degree.fxm)', 
-                              'TS * degree'))
-      # rownames_to_column(' ')
-      
-      # label stratified model
-      m_TS_x_degree_fxm_2_3_tot_pat_tidy$model <- 
-        c('tot. pat. ~ TS * degree')
-      
-  
-  ### 6.5 Combine estimates and format for publication 
-    ## a) Combine regression estimates into a tidy table
-      exp_med_intx_models_tidy <- bind_rows(f_age_x_strength_fxm_tot_fecund_tidy,
-                                    f_TS_x_strength_fxm_tot_fecund_tidy,
-                                    f_TS_x_degree_fxm_tot_fecund_tidy,
-                                    m_age_x_strength_fxm_2_3_tot_pat_tidy,
-                                    m_TS_x_strength_fxm_2_3_tot_pat_tidy,                                
-                                    m_TS_x_degree_fxm_2_3_tot_pat_tidy) 
-      
-    ## b) change order of columns
-      exp_med_intx_models_tidy <- exp_med_intx_models_tidy %>%
-        relocate(model, .before = term)
-      
-    ## c) format table creating flextable object 
-      exp_med_intx_models_frmt <- 
-        nice_table(exp_med_intx_models_tidy, separate.header = T)
-      
-    ## d) preview the table as a word doc    
-      #print(exp_med_intx_models_frmt, preview = 'docx')
-      
-    ## e) save exp_med_intx_models_frmt as a word doc
-      flextable::save_as_docx(exp_med_intx_models_frmt, 
-                        path = here('output/exp_med_intx_models_frmt.docx'))  
-      
-      
       
  
 ###############################################################################
-##############                  8. Export data                   ##############
+##############                  7. Export data                   ##############
 ###############################################################################  
 
       
-  ### 8.1 Export data to an RData file 
+  ### 7.1 Export data to an RData file 
       # Files are saved in the 'data' folder in the working directory as an
       # RData file.
       

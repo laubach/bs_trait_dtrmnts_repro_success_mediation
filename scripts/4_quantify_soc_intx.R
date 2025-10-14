@@ -7,7 +7,7 @@
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 21 Aug 2024                  #############
-#############             last updated: 25 Feb 2024                #############
+#############             last updated: 14 Oct 2024                #############
 ################################################################################
 
 
@@ -180,39 +180,7 @@
         rename(c('Tag' = 'name',
                  'strength.mxm' = 'chr15_mxm_intx_graph_strength',
                  'degree.mxm' = 'chr15_mxm_intx_graph_degree')) 
-      
-      
-  ### 3.1 Quantify and tidy female-male node level social intx data CHR 2015
-      # - pre-manipulation
-    ## a) create an igraph object from adjacency matrix
-      chr15_fxm_intx_post_graph <- 
-        graph_from_adjacency_matrix(chr15_fxm_intx_post_mat,
-                                    weighted=TRUE,
-                                    mode = 'lower')
-      
-    ## b) calculate strength (sum of id row and column counts) 
-      # pre-manipulation
-      chr15_fxm_intx_post_graph_strength <- 
-        igraph::strength(chr15_fxm_intx_post_graph, 
-                         vids = V(chr15_fxm_intx_post_graph))
-      
-    ## c) calculate degree (sum of id row and column cells not zero)
-      # pre-manipulation
-      chr15_fxm_intx_post_graph_degree <- 
-        igraph::degree(chr15_fxm_intx_post_graph, 
-                       v = V(chr15_fxm_intx_post_graph))
-      
-    ## d) make a tible of the each Tag ID's strength and degree pre-manipulation
-      chr15_fxm_intx_graph_post_df <- tibble(name=V
-                                      (chr15_fxm_intx_post_graph)$name, 
-                                        chr15_fxm_intx_post_graph_strength, 
-                                        chr15_fxm_intx_post_graph_degree)
-      
-    ## e) rename variables in chr15_fxm_intx_graph_post_df 
-      chr15_fxm_intx_graph_post_df <-chr15_fxm_intx_graph_post_df %>%
-        rename(c('Tag' = 'name',
-                 'strength.fxm.post' = 'chr15_fxm_intx_post_graph_strength',
-                 'degree.fxm.post' = 'chr15_fxm_intx_post_graph_degree'))
+
       
       
       
@@ -241,17 +209,7 @@
         left_join(chr15_mxm_intx_graph_df,
                   by = c('Tag' = 'Tag'), 
                   copy = F)
-      
   
-  ### 4.2 Join and tidy CHR 2015 data - post manipulation
-    ## a) Format variable type
-      chr15_attrib_post_df$Tag <- as.character(chr15_attrib_post_df$Tag)
-      
-    ## b) Left join chr15_fxm_intx_graph_post_df to chr15_attrib_post_df
-      chr15_attrib_post_df <- chr15_attrib_post_df  %>%
-        left_join(chr15_fxm_intx_graph_post_df,
-                  by = c('Tag' = 'Tag'), 
-                  copy = F) 
       
 
     # ## c) Normalize chr2015 degree and strength based on:
@@ -278,8 +236,6 @@
       chr15_attrib_df <- chr15_attrib_df %>%
         filter(!(Tag == 116))
       
-      chr15_attrib_post_df <- chr15_attrib_post_df %>%
-        filter(!(Tag == 116))
      
   # NOTE: Tag 79 for male 2640-97175 does not pair until late Aug...
       # fundamentally different than other birds, so remove it here.
@@ -288,17 +244,12 @@
       chr15_attrib_df <- chr15_attrib_df %>%
         filter(!(Tag == 79))
       
-      chr15_attrib_post_df <- chr15_attrib_post_df %>%
-        filter(!(Tag == 79))
 
   # NOTE: Tag 57, for male 1921-30295 does not pair until late Aug...
       # fundamentally different than other birds, so remove it here.
       # He had incomplete paternity - never included in paternity analysis)
     ## c) remove bird tag 57 from chr15_attrib_df and chr15_attrib_post_df
       chr15_attrib_df <- chr15_attrib_df %>%
-        filter(!(Tag == 57))
-      
-      chr15_attrib_post_df <- chr15_attrib_post_df %>%
         filter(!(Tag == 57))
       
       
@@ -321,11 +272,10 @@
       
     ## a) Save and export node level data
       save(file = here('data/5_6_chr_node_df.RData'), 
-           list = c('chr15_attrib_df', 'chr15_attrib_post_df',
+           list = c('chr15_attrib_df', 
                     'chr15_fxm_intx_graph', 'chr15_fxm_intx_mat', 
                     'chr15_fxf_intx_graph', 'chr15_fxf_intx_mat', 
-                    'chr15_mxm_intx_graph', 'chr15_mxm_intx_mat',
-                    'chr15_fxm_intx_post_graph', 'chr15_fxm_intx_post_mat'))
+                    'chr15_mxm_intx_graph', 'chr15_mxm_intx_mat'))
       
       
   
