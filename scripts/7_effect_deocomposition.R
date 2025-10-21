@@ -118,8 +118,9 @@
                                                 !is.na(total.fecundity)))
     ## b) full model summary
       summary(f_fxm_age_strength_fecund)
-      
+    
     ## c) Estimate average causal mediation effects
+      set.seed (2025)
       med_out_f_age_strength_fecund <- mediate(f_fxm_age_strength, 
                                         f_fxm_age_strength_fecund, 
                                       treat = "Age.category", 
@@ -135,6 +136,7 @@
       
     ## f) sensitivity analysis for unmeasured confounder between mediator and 
        # outcome
+      set.seed (2025)
       sens_f_age_strength_fecund <- medsens(med_out_f_age_strength_fecund,
                           rho.by = 0.1, effect.type = 'indirect',
                           sims = 1000)
@@ -223,6 +225,7 @@
       summary(f_fxm_TS_age_strength_fecund)
       
     ## c) Estimate average causal mediation effects
+      set.seed (2025)
       med_out_f_TS_age_strength_fecund <- mediate(f_fxm_TS_age_strength, 
                                                f_fxm_TS_age_strength_fecund, 
                                                treat = "scale(Mean.TS)", 
@@ -238,6 +241,7 @@
       
     ## f) sensitivity analysis for unmeasured confounder between mediator and 
       # outcome
+      set.seed (2025)
       sens_f_TS_age_strength_fecund <- 
         medsens(med_out_f_TS_age_strength_fecund,
                 rho.by = 0.1, effect.type = 'indirect',
@@ -246,48 +250,7 @@
       summary(sens_f_TS_age_strength_fecund)
       plot(sens_f_TS_age_strength_fecund)
       
-    ## g) Female Tail Streamer - Degree fxm full model 
-      # both full and mediator models adjusted for age
-      f_fxm_TS_age_degree_fecund <- lm(total.fecundity ~ 
-                                      scale(Mean.TS) + degree.fxm 
-                                    # adjust for age as confounder
-                                      + Age.category ,
-                                    # test for intx
-                                      #scale(Mean.TS) * degree.fxm,
-                                      #family = 'gaussian',
-                                      data = subset(chr15_attrib_df,
-                                            Sex == 'f' &
-                                            !is.na(Mean.TS) &
-                                            !is.na(degree.fxm) &
-                                            !is.na(Age.category) &
-                                            !is.na(total.fecundity)))
-    ## h) full model summary
-      summary(f_fxm_TS_age_degree_fecund)
-      
-    ## i) Estimate average causal mediation effects
-      med_out_f_TS_age_degree_fecund <- mediate(f_fxm_TS_age_degree, 
-                                            f_fxm_TS_age_degree_fecund, 
-                                                treat = "scale(Mean.TS)", 
-                                                mediator = "degree.fxm",
-                                                robustSE = TRUE, sims = 1000) 
-      
-    ## j) test for exposure*mediator intx
-      # test.TMint(med_out_f_TS_age_degree_fecund,
-      #            conf.level = .95)
-      
-    ## k) Average causal mediation model summary
-      summary(med_out_f_TS_age_degree_fecund)
-      
-    ## l) sensitivity analysis for unmeasured confounder between mediator and 
-      # outcome
-      sens_f_TS_age_degree_fecund <- 
-        medsens(med_out_f_TS_age_degree_fecund,
-                rho.by = 0.1, effect.type = 'indirect',
-                sims = 1000)
-      
-      summary(sens_f_TS_age_degree_fecund)
-      plot(sens_f_TS_age_degree_fecund)
-      
+    
       
       
 ###############################################################################
