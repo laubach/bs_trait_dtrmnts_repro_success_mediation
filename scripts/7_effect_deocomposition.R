@@ -249,9 +249,8 @@
       
       summary(sens_f_TS_age_strength_fecund)
       plot(sens_f_TS_age_strength_fecund)
-      
     
-      
+   
       
 ###############################################################################
 ##############            4. Tidy effects decomposition            ############
@@ -340,7 +339,6 @@
                   `Effect type` = factor(`Effect type`,
                                      levels = c('total','direct','indirect', 
                                                 'Prop. Mediated')))
-      
       
       
       
