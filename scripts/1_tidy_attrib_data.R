@@ -1,13 +1,13 @@
-################################################################################
-#############       Testing the mediating role of female-male      #############  
-#############    social interactions on the relationship between   #############
-#############             age and reproductive success.            #############
+#################################################################################
+#############         Testing the mediating role of social         #############  
+#############     interactions on the relationship between age     #############
+#############      and plumage traits on reproductive success.     #############
 #############                                                      #############
 #############               1. Tidy attribute data                 #############
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 14 Aug 2024                  #############
-#############              last updated: 24 Feb 2024               #############
+#############             last updated: 26 Jul 2026                #############
 ################################################################################
 
 
@@ -50,9 +50,9 @@
     sessionInfo()
     
     # Developed in:   
-    # R version 4.4.2 (2024-10-31)
+    # R version 4.6.0 (2026-04-24)
     # Platform: x86_64-apple-darwin20
-    # Running under: macOS Sequoia 15.1.
+    # Running under: macOS Tahoe 26.5.2
     
   
   ### 1.4 Set working directory 
@@ -60,14 +60,13 @@
   
   
   ### 1.5 Source functions
-    ## a) Source scripts path
-      source_path <- paste("~/WD/Git/source_code/")
+    ## a) all_char_to_lower function
+      source(file = here('source_code/all_char_to_lower.R'))
     
-    ## b) all_char_to_lower function
-      source(file = paste0(source_path, "all_char_to_lower.R"))
+    ## b) format_var_names function
+      source(file =  here('source_code/format_var_names.R'))
     
-    ## c) format_var_names function
-      source(file = paste0(source_path, "format_var_names.R"))
+    
 
 ###############################################################################
 ##############                  2. Import data                   ##############

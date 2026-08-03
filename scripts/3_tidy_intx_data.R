@@ -1,18 +1,18 @@
 ################################################################################
-#############       Testing the mediating role of female-male      #############  
-#############    social interactions on the relationship between   #############
-#############             age and reproductive success.            #############
+#############         Testing the mediating role of social         #############  
+#############     interactions on the relationship between age     #############
+#############      and plumage traits on reproductive success.     #############
 #############                                                      #############
 #############              3. Tidy interaction data                #############
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 7 Aug 2024                   #############
-#############             last updated: 14 Oct 2025                #############
+#############             last updated: 26 Jul 2026                #############
 ################################################################################
 
 
   ### PURPOSE: Tidy interaction data and build adjacency matrices for swallow 
-          #  pre- and post experimental manipulation at >= 20, 25, and 30 RSSI 
+          #  pre- experimental manipulation at >= 20 RSSI 
   
   
   # Code Blocks
@@ -60,9 +60,9 @@
     sessionInfo()
     
     # Developed in:   
-    # R version 4.4.2 (2024-10-31)
+    # R version 4.6.0 (2026-04-24)
     # Platform: x86_64-apple-darwin20
-    # Running under: macOS Sequoia 15.1.1
+    # Running under: macOS Tahoe 26.5.2
     
   
   ### 1.4 Set working directory 
@@ -70,15 +70,12 @@
     
     
   ### 1.5 Source functions
-    ## a) Source scripts path
-      source_path <- paste("~/WD/Git/source_code/")
+    ## a) all_char_to_lower function
+      source(file = here('source_code/all_char_to_lower.R'))
     
-    ## b) all_char_to_lower function
-      source(file = paste0(source_path, "all_char_to_lower.R"))
+    ## b) format_var_names function
+      source(file =  here('source_code/format_var_names.R'))
     
-    ## c) format_var_names function
-      source(file = paste0(source_path, "format_var_names.R"))
-  
   
       
 ###############################################################################
@@ -457,35 +454,6 @@
       chr15_mxm_intx_df <- chr15_mxm_intx_df %>%
         filter(RSSImean >= 20) %>%
         select(Tag1, Tag2) 
-      
-  
-  # ### 5.4  Subset the post-manip data by tag signal and select 
-  #     # variables of interest    
-  #   ## a) Subset CHR 2015 the data by post-experiment dates: 6/19 - 6/20
-  #     chr15_fxm_intx_post_df <- chr15_fxm_intx_post_df %>%
-  #       filter(day(Tstart) == 19 | day(Tstart) == 20 & 
-  #                month(Tstart) == 6)
-  #     
-  #   # ## b)  extract ID list from Tag1 and Tag2 of of IDs to include in 
-  #   #   # post manipulation adjacency matrix.
-  #   #   # Note this is done before RSSI filtering in case any IDs have no 
-  #   #   # interactions
-  #   #   id_list_chr15_fxm_intx_post_df <- as.character(sort(union(chr15_fxm_intx_post_df$Tag1, 
-  #   #                                                             chr15_fxm_intx_post_df$Tag2), 
-  #   #                                               decreasing = F))
-  #     
-  # 
-  #   ## c) create a second data frame that contains the duration of intx at
-  #     # 20RSSI
-  #     chr15_fxm_dur_post_df <- chr15_fxm_intx_post_df %>%
-  #       filter(RSSImean >= 20) %>%
-  #       select(Tag1, Tag2, duration) 
-  #     
-  #   ## d) Subset CHR 2015 post-manipulation by RSSI mean >= 20
-  #     chr15_fxm_intx_post_df <- chr15_fxm_intx_post_df %>%
-  #       filter(RSSImean >= 20) %>%
-  #       select(Tag1, Tag2)
-      
 
       
       
@@ -524,17 +492,6 @@
     ## b) Use igraph to build social intx. adjacency matrix 
       chr15_mxm_intx_mat <- as_adjacency_matrix(chr15_mxm_intx_graph, 
                                                 sparse = F) 
- 
-
-  # ### 6.4 Build CHR 2015 female-male adjacency matrix for >= 20 mean RSSI 
-  #     # - post manipulation
-  #   ## a) Use igraph to build graph from social intx. edge list
-  #     chr15_fxm_intx_post_graph <- graph_from_data_frame(chr15_fxm_intx_post_df, 
-  #                                                   directed = F)  
-  #     
-  #   ## b) Use igraph to build social intx. adjacency matrix 
-  #     chr15_fxm_intx_post_mat <- as_adjacency_matrix(chr15_fxm_intx_post_graph, 
-  #                                               sparse = F) 
       
 
 
@@ -546,9 +503,9 @@
       # Files are saved in the 'data' folder in the working directory as an
       # RData file.
       
-    ## a) Save and export data for CHR 2015 and 2016 pre-manipulation >= 20 RSSI
+    ## a) Save and export data for CHR 2015 and pre-manipulation >= 20 RSSI
       save(file = here('data/4_chr_intx_summary_data.RData'), 
-           list = c('chr15_attrib_df', 'chr15_attrib_post_df',
+           list = c('chr15_attrib_df', #'chr15_attrib_post_df',
                   # female-male pre-manipulation
                     'chr15_fxm_intx_df', 'chr15_fxm_dur_df',
                     # 'chr15_fxm_intx_graph', 

@@ -1,7 +1,7 @@
 ################################################################################
-#############       Testing the mediating role of female-male      #############  
-#############    social interactions on the relationship between   #############
-#############             age and reproductive success.            #############
+#############         Testing the mediating role of social         #############  
+#############     interactions on the relationship between age     #############
+#############      and plumage traits on reproductive success.     #############
 #############                                                      #############
 #############                    0. Data Import                    #############
 #############                                                      #############
@@ -51,9 +51,9 @@
     sessionInfo()
     
     # Developed in:   
-    # R version 4.4.2 (2024-10-31)
+    # R version 4.6.0 (2026-04-24)
     # Platform: x86_64-apple-darwin20
-    # Running under: macOS Sequoia 15.1.1
+    # Running under: macOS Tahoe 26.5.2
     
   
   ### 1.4 Set working directory 
@@ -107,7 +107,6 @@
       
 
   
-          
 ###############################################################################
 ##############          4. Import repro. success data            ##############
 ###############################################################################    
@@ -130,13 +129,11 @@
       save(file = here('data/1_chr_attrib_data.RData'), 
            list = c('chr15_attrib_df'))
       
-
     ## b) Save and export raw repro. success data 
       # Files are saved in the 'data' folder in the working directory as an
       # RData file.
       save(file = here('data/2_chr_repro_data.RData'), 
            list = c('chr15_repro_suc'))
-      
       
     ## c) Save and export raw intx data tables (and attribute table 
       # for subsetting intx data)

@@ -1,13 +1,13 @@
 ################################################################################
-#############       The role of social and phenotypic dyadic       #############  
-#############           relationships as determinants of           #############
-#############                 reproductive success                 #############
+#############         Testing the mediating role of social         #############  
+#############     interactions on the relationship between age     #############
+#############      and plumage traits on reproductive success.     #############
 #############                                                      #############
 ############# 5. Node descriptive statistics and data exploration  #############
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############               created: 21 March 2025                 #############
-#############              last updated: 14 Oct 2025               #############
+#############              last updated: 26 Jul 2026               #############
 ################################################################################
 
 
@@ -83,24 +83,13 @@
     sessionInfo()
     
     # Developed in:   
-    # R version 4.4.2 (2024-10-31)
+    # R version 4.6.0 (2026-04-24)
     # Platform: x86_64-apple-darwin20
-    # Running under: macOS Sequoia 15.1.
+    # Running under: macOS Tahoe 26.5.2
     
   
   ### 1.4 Set working directory 
     setwd(here())
-  
-  
-  ### 1.5 Source functions
-    ## a) Source scripts path
-      source_path <- paste('~/WD/Git/source_code/')
-    
-    ## b) all_char_to_lower function
-      source(file = paste0(source_path, 'all_char_to_lower.R'))
-    
-    ## c) format_var_names function
-      source(file = paste0(source_path, 'format_var_names.R'))
       
       
 

@@ -1,13 +1,13 @@
 ################################################################################
-#############       Testing the mediating role of female-male      #############  
-#############    social interactions on the relationship between   #############
-#############             age and reproductive success.            #############
+#############         Testing the mediating role of social         #############  
+#############     interactions on the relationship between age     #############
+#############      and plumage traits on reproductive success.     #############
 #############                                                      #############
 #############          2. Tidy reproductive success data           #############
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 20 Aug 2024                  #############
-#############             last updated: 24 Feb 2024                #############
+#############             last updated: 26 Jul 2026                #############
 ################################################################################
 
 
@@ -55,9 +55,9 @@
     sessionInfo()
     
     # Developed in:   
-    # R version 4.4.2 (2024-10-31)
+    # R version 4.6.0 (2026-04-24)
     # Platform: x86_64-apple-darwin20
-    # Running under: macOS Sequoia 15.1.
+    # Running under: macOS Tahoe 26.5.2
     
   
   ### 1.4 Set working directory 
@@ -65,15 +65,14 @@
   
   
   ### 1.5 Source functions
-    ## a) Source scripts path
-      source_path <- paste("~/WD/Git/source_code/")
+    ## a) all_char_to_lower function
+      source(file = here('source_code/all_char_to_lower.R'))
     
-    ## b) all_char_to_lower function
-      source(file = paste0(source_path, "all_char_to_lower.R"))
+    ## b) format_var_names function
+      source(file =  here('source_code/format_var_names.R'))
     
-    ## c) format_var_names function
-      source(file = paste0(source_path, "format_var_names.R"))
 
+    
 ###############################################################################
 ##############                  2. Import data                   ##############
 ###############################################################################    
@@ -180,7 +179,7 @@
       # checking the earliest vs latest encounter net to ensure networks
       # are based on when all Tags working
       
-    ## a) remove bird 49 from both pre and post manip data frames to 
+    ## a) remove bird 49 from both pre-manip data frames to 
           # match social networks because Tag worked from 6/13-6/14; Tag 108 
           # for female 2640-97169 and tag 69 for male 2591-02869 
           # never worked, so not included in 
@@ -190,25 +189,25 @@
   
 
       
-      # NOTE: Remove birds with insufficient post manip network data based on
-      # checking the earliest vs latest encounter net to ensure networks
-      # are based on when all Tags working
-      
-    ## b) Remove males 55, 61, 67 and females 40, 51, 52 and from post manip 
-      # networks. Tag stopped on 6/19
-      chr15_attrib_post_df <- chr15_attrib_pre_df %>%
-        filter(!(Tag == 55)) %>% # males
-        #filter(!(Tag == 57)) %>% already removed for incomplete fecundity
-        filter(!(Tag == 61)) %>%
-        filter(!(Tag == 67)) %>%
-        filter(!(Tag == 40)) %>% # females
-        filter(!(Tag == 51)) %>%
-        filter(!(Tag == 52)) %>%
-        #filter(!(Tag == 116)) %>% already removed for incomplete paternity
-        # and birds 56, 80, 82 which have no Tag data by 6/19
-        filter(!(Tag == 56)) %>% # male
-        filter(!(Tag == 82)) %>%
-        filter(!(Tag == 80)) # female
+    #   # NOTE: Remove birds with insufficient post manip network data based on
+    #   # checking the earliest vs latest encounter net to ensure networks
+    #   # are based on when all Tags working
+    #   
+    # ## b) Remove males 55, 61, 67 and females 40, 51, 52 and from post manip 
+    #   # networks. Tag stopped on 6/19
+    #   chr15_attrib_post_df <- chr15_attrib_pre_df %>%
+    #     filter(!(Tag == 55)) %>% # males
+    #     #filter(!(Tag == 57)) %>% already removed for incomplete fecundity
+    #     filter(!(Tag == 61)) %>%
+    #     filter(!(Tag == 67)) %>%
+    #     filter(!(Tag == 40)) %>% # females
+    #     filter(!(Tag == 51)) %>%
+    #     filter(!(Tag == 52)) %>%
+    #     #filter(!(Tag == 116)) %>% already removed for incomplete paternity
+    #     # and birds 56, 80, 82 which have no Tag data by 6/19
+    #     filter(!(Tag == 56)) %>% # male
+    #     filter(!(Tag == 82)) %>%
+    #     filter(!(Tag == 80)) # female
          
 #*****************************************************************************#
 #*****************************************************************************#  
@@ -225,8 +224,9 @@
       
     ## a) Save and export data for CHR 2015 pre-manipulation repro. success
       save(file = here('data/3_chr_attrib_data.RData'), 
-           list = c('chr15_attrib_pre_df', 
-                    'chr15_attrib_post_df'))
+           list = c('chr15_attrib_pre_df'
+                    #, 'chr15_attrib_post_df'
+                    ))
       
       
 

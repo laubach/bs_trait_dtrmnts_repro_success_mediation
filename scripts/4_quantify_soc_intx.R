@@ -1,18 +1,18 @@
 ################################################################################
-#############       Testing the mediating role of female-male      #############  
-#############    social interactions on the relationship between   #############
-#############             age and reproductive success.            #############
+#############         Testing the mediating role of social         #############  
+#############     interactions on the relationship between age     #############
+#############      and plumage traits on reproductive success.     #############
 #############                                                      #############
 #############         4. Summarize social interaction data         #############
 #############                                                      #############
 #############                  By: Zach Laubach                    #############
 #############                created: 21 Aug 2024                  #############
-#############             last updated: 14 Oct 2024                #############
+#############             last updated: 26 Jul 2026                #############
 ################################################################################
 
 
-  ### PURPOSE: Quantify the social interaction data to create node and dyad 
-            # level network measures from pre- manipulation social networks
+  ### PURPOSE: Quantify the social interaction data to create node level 
+            # network measures from pre- manipulation social networks
   
   # Code Blocks
     # 1. Configure work space
@@ -60,25 +60,14 @@
     sessionInfo()
     
     # Developed in:   
-    # R version 4.4.2 (2024-10-31)
+    # R version 4.6.0 (2026-04-24)
     # Platform: x86_64-apple-darwin20
-    # Running under: macOS Sequoia 15.1.
+    # Running under: macOS Tahoe 26.5.2
     
   
   ### 1.4 Set working directory 
     setwd(here())
   
-  
-  ### 1.5 Source functions
-    ## a) Source scripts path
-      source_path <- paste("~/WD/Git/source_code/")
-    
-    ## b) all_char_to_lower function
-      source(file = paste0(source_path, "all_char_to_lower.R"))
-    
-    ## c) format_var_names function
-      source(file = paste0(source_path, "format_var_names.R"))
-
    
          
 ###############################################################################
@@ -275,11 +264,13 @@
            list = c('chr15_attrib_df', 
                     'chr15_fxm_intx_graph', 'chr15_fxm_intx_mat', 
                     'chr15_fxf_intx_graph', 'chr15_fxf_intx_mat', 
-                    'chr15_mxm_intx_graph', 'chr15_mxm_intx_mat'))
+                    'chr15_mxm_intx_graph', 'chr15_mxm_intx_mat'))   
+                    # mom_repro_df <- mom_repro_df%>%
+                    #   group_by(mom.id) %>%
+                    #   summarise(tot.chicks = sum(fert, na.rm = TRUE))))
       
       
   
-      
 
 
       

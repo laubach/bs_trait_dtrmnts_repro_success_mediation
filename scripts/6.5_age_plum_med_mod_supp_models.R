@@ -1,14 +1,14 @@
 ################################################################################
-#############       Testing the mediating role of female-male      #############  
-#############    social interactions on the relationship between   #############
-#############             age and reproductive success.            #############
+#############         Testing the mediating role of social         #############  
+#############     interactions on the relationship between age     #############
+#############      and plumage traits on reproductive success.     #############
 #############                                                      #############
 #############    6.5 Age-plumage and Med-Mod interaction models    #############
 #############               Supplementary Materials                #############
 #############                                                      #############
 #############                   By: Zach Laubach                   #############
 #############                 created: 29 Sept 2024                #############
-#############               last updated: 14 Oct 2025              #############
+#############               last updated: 26 Jul 2026              #############
 ################################################################################
 
 
@@ -74,9 +74,9 @@
     sessionInfo()
     
     # Developed in:   
-    # R version 4.4.2 (2024-10-31)
+    # R version 4.6.0 (2026-04-24)
     # Platform: x86_64-apple-darwin20
-    # Running under: macOS Sequoia 15.1.
+    # Running under: macOS Tahoe 26.5.2
     
   
   ### 1.4 Set working directory 
