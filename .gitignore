@@ -13,8 +13,8 @@
 /raw_data
 /old
 /2015_CHR_nest_dist
-/.DS_Store
-/node-level_models.docx
+.DS_Store
+node-level_models.docx
 
 # Example code in package build process
 *-Ex.R
