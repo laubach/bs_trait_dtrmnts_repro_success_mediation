@@ -13,8 +13,7 @@
 
 
 
-### PURPOSE: Run mediation and total effects models for traits and reproductive
-           # success
+### PURPOSE: Test mediator-moderator interaction models 
          
   # Code Blocks
     # 1. Configure work space

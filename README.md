@@ -90,6 +90,11 @@ Differential reproduction is a key driver of evolution that is determined by ind
 
 * _6_med_and_tot_effects_models.R -_ Run mediation and total effects models for traits and reproductive success
 
+* _6.5_age_plum_med_mod_supp_models.R -_ Test mediator-moderator interaction models
+
+* _7_effect_deocomposition.R -_ Decompose the total effect into the direct and indirect effects
+
+
 
 #### Output description
 
