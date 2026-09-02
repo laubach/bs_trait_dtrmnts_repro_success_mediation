@@ -382,7 +382,7 @@
 #*****************************************************************************#
 #*****************************************************************************#      
    
-# NOTE: decided to mover forward with only the pre-manipulation data due 
+# NOTE: decided to move forward with only the pre-manipulation data due 
       # to missing data / loss to follow up in post-manipulation networks
       
       
